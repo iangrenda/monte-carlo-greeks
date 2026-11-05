@@ -1,0 +1,56 @@
+{
+  "_purpose": "Pre-registered (frozen) cost-based sampler-selection rule and evaluation protocol for Phase 4, Part B. Committed before any Phase-4 validation run. Do not edit after results exist; any change must be a new, separately named rule.",
+  "frozen_on": "2026-11-05",
+  "frozen_at_parent_commit": "872a224",
+  "origin": "Formulated post hoc in Phase 3 (docs/RESEARCH_FINDINGS.md section 9.5) after inspecting results/asian_qmc/research; this file freezes it for confirmatory testing.",
+  "rule": {
+    "name": "cost-model rule",
+    "decision": "use RQMC-pca if budget_seconds >= n_scrambles * (a_m + n_min_points * b_m), else MC",
+    "n_scrambles": 10,
+    "n_min_points": 64,
+    "estimator": "CPW-first (level variable Z_1 integrated out exactly)",
+    "cost_model": {
+      "form": "t(n) = a_m + b_m * n seconds per scrambling of n points",
+      "fit": "pooled ordinary least squares over constructions {seq, bb, pca} and n in {64, 256, 1024, 4096}, median of 9 repeats each",
+      "measured": "at the start of the evaluation run, on the evaluation machine, for each m in the grid (mc_greeks.asian_qmc.calibrate_rqmc, pooled=True)",
+      "seed_offset": 7
+    }
+  },
+  "comparators": {
+    "frequency_heuristic": "RQMC-pca if m <= 12 else MC (the regime rule learned on Phase-3 training scenarios at 5 ms)",
+    "best_fixed_from_training": "RQMC-pca (best fixed sampler on the Phase-3 research grid)",
+    "fixed_samplers": ["MC", "RQMC-seq", "RQMC-bb", "RQMC-pca"],
+    "oracle": "per (scenario, budget, Greek): fixed sampler with the smallest measured time-normalised MSE; evaluation only"
+  },
+  "grid": {
+    "m": [8, 24, 52, 104],
+    "moneyness_K_over_S0": [0.97, 1.03],
+    "sigma": [0.18, 0.33],
+    "T": [0.7, 2.0],
+    "r": 0.04,
+    "S0": 100.0,
+    "note": "none of these m, K/S0, sigma, T or r values occur in the Phase-2 or Phase-3 Asian grids"
+  },
+  "budgets_seconds": [0.005, 0.010, 0.020, 0.050, 0.100],
+  "greeks": ["delta", "gamma", "vega"],
+  "replications": 20,
+  "seed": 20261120,
+  "rqmc_points_per_scramble": "largest power of two with 10 scramblings fitting the budget under the same pooled cost model (unchanged from Phase 3)",
+  "references": {"estimator": "CPW-first + PCA-RQMC", "scrambles": 32, "points_per_scramble": "2^18 if m <= 24 else 2^16", "independent_check": "CPW-first plain MC, 2^20 paths, z-scores"},
+  "cache_protocol": {
+    "warm": "construction matrix L built before the timed region (amortised setup, reported separately); Sobol scrambler construction is always charged",
+    "cold": "L built inside the timed region on a fresh cache; measured on one scenario per m, 10 replications per (construction, budget)",
+    "calibration": "one-off per machine; its wall time is recorded and reported as amortised setup, not charged per estimate"
+  },
+  "metrics": {
+    "wn_mse": "(MSE - ref_se^2) * mean measured wall time (pilot-free; full estimation procedure timed)",
+    "regret": "sqrt(wn_mse_strategy / wn_mse_oracle)",
+    "overrun": "report the distribution of measured wall / budget; flag every estimate with wall > 1.10 * budget"
+  },
+  "success_criteria": {
+    "C1": "geometric-mean regret of the rule <= 1.25 in every (budget, Greek) cell, aggregated over the 32 scenarios",
+    "C2": "among (scenario, budget, Greek) cells where MC and PCA-RQMC differ significantly (95% bootstrap CI of log(wn_MC/wn_PCA) over replications excludes 0), the rule picks the better of the two in >= 90%",
+    "C3": "the rule's geometric-mean regret is no worse than both comparators (frequency heuristic, always-PCA) in at least 2/3 of (budget, Greek) cells",
+    "verdict": "pass if C1 and C2 hold; C3 reported but not required"
+  }
+}
