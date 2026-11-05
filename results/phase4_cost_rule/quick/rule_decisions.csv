@@ -1,0 +1,5 @@
+m,budget,rule_choice
+8,0.005,RQMC-pca
+8,0.01,RQMC-pca
+24,0.005,MC
+24,0.01,RQMC-pca

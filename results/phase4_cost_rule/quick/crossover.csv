@@ -1,0 +1,7 @@
+sid,m,greek,crossover_s,status,rule_threshold_s
+0,8,delta,,PCA better at all budgets,0.0044723387482729
+0,8,gamma,,PCA better at all budgets,0.0044723387482729
+0,8,vega,,PCA better at all budgets,0.0044723387482729
+1,24,delta,0.006588343186257437,crossover,0.0077733058337536
+1,24,gamma,0.007401186702894612,crossover,0.0077733058337536
+1,24,vega,0.006485645717020046,crossover,0.0077733058337536

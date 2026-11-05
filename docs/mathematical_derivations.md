@@ -667,10 +667,29 @@ unaffected.
 **Points per scrambling.** n_s is the largest power of two such that 10
 scramblings fit in the budget under the measured cost model
 `t(n) = a + b·n`. Here `a` is the per-scrambling overhead, mostly building
-the Owen-scrambled Sobol generator, and `b` is the per-point cost. Both are
-fitted per (construction, m) by timing n = 2⁶ and 2¹² (`calibration.csv`).
-This choice is a heuristic trade-off: larger n_s exploits the RQMC rate,
-and more scramblings give a better SE.
+the Owen-scrambled Sobol generator, and `b` is the per-point cost.
+
+*Reconciled in phase 4.* The **current** implementation
+(`calibrate_rqmc(pooled=True)`, the default since the phase-3 re-run) fits
+**one** (a, b) per m, shared by all three constructions. The fit is
+ordinary least squares over n ∈ {64, 256, 1024, 4096}, using the median of
+9 repeats at each n.
+
+The constructions execute identical code, so separate fits only add timing
+noise. The first phase-3 pass used per-construction two-point fits
+(n = 2⁶ and 2¹²). Those are preserved as `calibration_v1.csv` and the
+`*_v1` result files, and they confounded the 5 ms comparison (RESEARCH_FINDINGS §9.2).
+
+**Setup costs not in the model** (measured in phase 4; PHASE4_VALIDATION.md):
+
+* building L takes up to 1.5 ms (PCA/BB, m = 52) and 6.5 ms (BB, m = 104);
+* Sobol scrambler construction is 1.4 ms at m = 52 and 2.8 ms at m = 104.
+
+The scrambler cost is charged per scrambling inside every timed estimate.
+L is cached after its first use.
+
+The choice of n_s is a heuristic trade-off: larger n_s exploits the RQMC
+rate, and more scramblings give a better SE.
 
 **Time-normalised comparison.**
 
@@ -715,3 +734,139 @@ K/S₀ = 1, T = 1):
 
 **Phase 3 avoids the issue by construction:** every estimate, pilot
 included, is time-boxed and charged its measured wall time.
+
+---
+---
+
+# Part IV: Greek-aware orthogonal transforms (phase 4)
+
+*Established method:* gradient PCA (Xiao & Wang 2017/2018), active
+subspaces (Constantine 2015; Liu & Owen 2023), and the LT method (Imai &
+Tan). See PHASE4_LITERATURE.md. What follows is the derivation for our
+estimator.
+
+## IV.1 Rotation invariance
+
+Let `n = m − 1`, let `C` be the residual covariance (III.1), and let L₀ be
+any factor with `L₀L₀ᵀ = C` (we use PCA). Take `ξ ~ N(0, I_n)` and any
+orthogonal U (`UᵀU = I`). Then:
+
+* `η = Uξ` has mean 0 and covariance `U I Uᵀ = I`. A linear map of a
+  Gaussian vector is Gaussian, so η ~ N(0, I).
+* `B = L₀Uξ` has covariance `L₀UUᵀL₀ᵀ = C`, so B has exactly the residual
+  Brownian law.
+
+So replacing L₀ by `L_U = L₀U` changes nothing in distribution. The
+CPW-first conditioning (Z₁ integrated out given B) is untouched, and every
+estimator stays unbiased. Under plain MC the estimator distributions are
+identical.
+
+Under RQMC they differ. The Sobol coordinate j now drives the direction
+`L₀u_j` in path space, and scrambled Sobol points are most uniform in their
+leading low-dimensional projections. The aim is to put the integrand's most
+important directions there.
+
+## IV.2 Gradient covariance and the transform
+
+Write the Greek-g integrand in ξ coordinates as `f_g(ξ) = ψ_g(L₀ξ)`. By the
+chain rule, `∇_ξ f_g = L₀ᵀ ∇_B ψ_g`. Define
+
+```
+G_g = E[∇_ξ f_g ∇_ξ f_gᵀ] = L₀ᵀ H_g L₀,     H_g = E[∇_B ψ_g ∇_B ψ_gᵀ].
+```
+
+`G_g` is symmetric. It is PSD, because `vᵀG_g v = E[(vᵀ∇f)²] ≥ 0`. Its
+Monte Carlo estimate `(1/N) Σ ∇f ∇fᵀ` is symmetric PSD for every N. Take
+`G_g = UΛUᵀ` with eigenvalues decreasing, and set `L_g = L₀U`.
+
+**Interpretation.** `λ_k = E[(∂f/∂η_k)²]` is the mean-squared sensitivity
+of the integrand to the k-th rotated coordinate. It is a derivative-based
+global sensitivity measure (DGSM).
+
+For a standard Gaussian input, the Poincaré inequality (constant 1) gives,
+conditionally on the other coordinates,
+`Var_k(f | η_{−k}) ≤ E[(∂f/∂η_k)² | η_{−k}]`. Taking expectations, the
+total Sobol' index satisfies `S_k^tot ≤ λ_k / Var(f)`.
+
+Sorting by λ therefore concentrates an upper bound on each coordinate's
+total variance contribution into the first coordinates.
+
+This is a *proxy*. Large leading eigenvalues bound the total-sense
+importance from above, but they do not guarantee low truncation-sense
+effective dimension, nor lower RQMC error. Both are tested, not assumed
+(H1, H2).
+
+**Independence of the base factor.** If `L₀' = L₀Q` with Q orthogonal, then
+`G' = QᵀGQ`, whose eigenvectors are `U' = QᵀU`, so `L₀'U' = L₀U`. The
+transform is unique up to eigenvector signs and ties, which change nothing
+in distribution. This is tested by comparing PCA-based and sequential-based
+constructions.
+
+## IV.3 Analytic gradients
+
+Notation (II.5):
+
+* `R_i = x exp((r − σ²/2)t_i + σB_i)` with `B_1 = 0`;
+* `Ā = (1/m) Σ R_i`, `s = σ√Δ`, `δ = ln(Ā/K)/s`, `D = e^{−rT}`, φ = N(0,1) pdf.
+
+For `i = 2..m`,
+
+```
+∂δ/∂B_i = σR_i / (m Ā s).
+```
+
+Each Greek is `ψ_g = h_g(δ, ·)`, and with `φ'(δ) = −δφ(δ)`:
+
+| g | ψ_g | ∂ψ_g/∂B_i |
+|---|---|---|
+| price | `DΦ(δ)` | `Dφ(δ) ∂δ/∂B_i` |
+| Δ | `Dφ(δ)/(xs)` | `−Dδφ(δ)/(xs) · ∂δ/∂B_i` |
+| Γ | `−Dφ(δ)(δ + s)/(xs)²` | `Dφ(δ)(δ(δ + s) − 1)/(xs)² · ∂δ/∂B_i` |
+| 𝒱 | `Dφ(δ)[ℓ/s − δ/σ]` | `D[−δφ(δ)(ℓ/s − δ/σ) ∂δ/∂B_i + φ(δ)(∂ℓ/∂B_i / s − ∂δ/∂B_i / σ)]` |
+
+For 𝒱:
+
+* `ℓ = Σ R_j u_j / Σ R_j`, with `u_j = B_j − σt_j`;
+* `∂ℓ/∂B_i = R_i(σ(u_i − ℓ) + 1)/Σ R_j`.
+
+**Validation** (`tests/test_greek_aware_qmc.py`). The gradients are checked
+against central finite differences along random directions for m ∈ {2, 5, 13}.
+The relative error is < 1e-6, and about 1e-10 is observed. The values equal
+`cpw_first_samples` to rounding.
+
+## IV.4 Joint multi-Greek transform
+
+A single transform for Δ, Γ, 𝒱 together:
+
+```
+G_joint = (1/3) Σ_g G_g / tr(G_g).
+```
+
+The traces normalise away the different units of the Greeks: each one
+contributes unit total gradient energy.
+
+**Objective used for evaluation.** For each scenario,
+`J = (Π_g MSE_g(method) / MSE_g(path PCA))^{1/3}`, the geometric mean over
+the Greeks of the MSE ratio to path PCA at equal N (or equal time). The
+joint transform does **not** minimise J. It maximises
+`Σ_g tr(U_kᵀ G_g U_k)/tr(G_g)`, the trace-normalised gradient energy in the
+first k coordinates, for every k simultaneously. That is equivalent to the
+eigen-solution by Ky Fan's maximum principle. Whether this proxy helps J is
+an empirical question (H4).
+
+## IV.5 Cost
+
+Building a gradient transform costs:
+
+* n_train gradient evaluations: `O(n_train · m)`, plus the matrix products
+  `O(n_train · n²)`;
+* one eigendecomposition: `O(n³)`.
+
+We report it as a measured setup time and evaluate two deployment
+assumptions:
+
+* **one-off:** setup charged inside each estimate's wall-clock budget;
+* **amortised:** transform reused, setup reported but not charged.
+
+Path PCA needs only its own eigendecomposition. It is likewise charged in
+the "one-off" variant.

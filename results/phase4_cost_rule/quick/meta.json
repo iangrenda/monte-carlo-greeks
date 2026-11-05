@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 197 Stepping 2, GenuineIntel",
+    "numpy": "2.4.3",
+    "scipy": "1.16.2",
+    "pandas": "2.3.3",
+    "matplotlib": "3.10.7",
+    "timestamp": "2026-11-05 16:46:32",
+    "git_commit": "5f657d4168553f87003234eb1046b7396e92a4ff",
+    "git_dirty": true,
+    "machine": "AMD64",
+    "config_file": "configs/phase4_cost_rule.json"
+  },
+  "quick": true,
+  "budgets": [
+    0.005,
+    0.01
+  ],
+  "reps": 4,
+  "calibration_seconds": 0.9572516999905929,
+  "wall_seconds_total": 3.8768978118896484
+}
