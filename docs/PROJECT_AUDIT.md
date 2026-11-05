@@ -231,3 +231,16 @@ and with independent quadrature.
 * **No phase-1 code or results modified.** The phase-2 code is additive
   (`asian.py`, `asian_experiments.py`, `scripts/asian_study.py`,
   `tests/test_asian.py`), and phase-2 outputs go to `results/asian/<config>/`.
+
+---
+
+## H. Phase-3 audit addendum (2026-11-05)
+
+| Finding | Severity | Evidence | Action |
+|---|---|---|---|
+| Phase-2 adaptive selector charged only the nominal pilot budget. The 16-path minimum made the calibrated pilot cost up to 2.5× nominal, and the measured wall time was 6–400× nominal (up to 33× the whole budget) because of per-call and scrambler overhead. | **high** (it changed conclusions) | `results/asian/research_revalidation/pilot_accounting.csv` | `accounting="charged"` is the default. Pilot wall time is recorded. The phase-2 adaptive-lite claims are retracted (`RESEARCH_FINDINGS.md` §5 errata, §8). |
+| Phase-2 fixed runs missed their nominal budgets (measured/B: MC 0.5–2.0, RQMC 0.85–8.3) | medium | stored `fixed_raw.csv.gz` runtimes | Phase 3 uses measured wall-clock budgets. Phase-2 conclusions were revalidated time-normalised. |
+| RQMC confidence intervals used z = 1.96 with about 10 scramblings | medium | coverage 0.904 (z) vs 0.933 (t) | t_{R−1} in phase 3 |
+| Phase-3 first pass: per-construction two-point cost fits made PCA's scramble size 16 vs 2 048 for the others (noise) | high for the 5 ms comparison | `calibration_v1.csv`, `fixed_raw_v1.csv.gz` | Pooled least-squares cost model, plus a regression test. The calibration-dependent runs were re-run. |
+
+Tests: 221 passing (`python -m pytest`), 46 of them new in phase 3.

@@ -555,3 +555,163 @@ Bump rules are pre-specified and scale with `S_0 σ √T`
 * Error bars come from ≥ 8 independent scramblings.
 * A Brownian-bridge or PCA construction, which the RQMC literature uses to
   lower effective dimension (Albieri et al. 2025), was **not** implemented.
+  Phase 3 (Part III) adds both.
+
+---
+---
+
+# Part III: Path constructions for RQMC, wall-clock budgets (phase 3)
+
+## III.1 Keeping the CPW-first conditioning exact
+
+With `t_i = iΔ`, split the Brownian path at the monitoring dates into a
+*level* part and a *residual* part:
+
+```
+W_{t_i} = √Δ Z_1 + B_i,       B_1 = 0,   B_i = W_{t_i} − W_{t_1}  (i = 2..m).
+```
+
+By independent increments, `(B_2,…,B_m)` is a Brownian motion observed at
+`τ_k = kΔ` (k = 1..m−1), started at 0 and **independent of Z_1**. Its
+covariance is `C_kl = Δ·min(k, l)`.
+
+CPW-first (II.5) needs only
+
+```
+R_i = x exp((r − σ²/2) t_i + σ B_i),
+Ā = mean_i R_i,
+P(A ≥ K | B) = Φ(ln(Ā/K)/(σ√Δ)).
+```
+
+So the estimator is a fixed function `ψ(B)`, and the Greek is `E[ψ(B)]`
+for **any** construction of B with the right law. Let `ξ ~ N(0, I_{m−1})`
+and `B = Lξ`. Then `B ~ N(0, LLᵀ)`, so every L with `LLᵀ = C` gives:
+
+* the same law of B, and hence the same law of `(Z_1, B)`, since Z_1 is not
+  touched;
+* the same law of W at the dates, with `Cov(W_{t_i}, W_{t_j}) = Δ + C_{i−1,j−1} = min(t_i, t_j)`
+  (taking `C_{0,·} = 0`);
+* the same conditional identity, hence an **unbiased** estimator for every
+  construction.
+
+Under plain MC the three constructions give *identically distributed*
+estimators. Under (R)QMC they differ, because Sobol points are not
+rotation-invariant: the construction decides which direction of path space
+the best Sobol coordinates drive.
+
+**Implementation.** `asian_qmc.increments_from_residual` turns
+`B = Lξ` back into the increments that `cpw_first_samples` expects
+(`Z_1 := 0`, unused, and `Z_{k+1} = (B_{k+1} − B_k)/√Δ`). The tests check
+that the reconstructed residual path equals B to rounding, and that
+changing `Z_1` does not change the estimator.
+
+## III.2 The three constructions (established methods)
+
+Let `n = m − 1`.
+
+* **Sequential.** `L = √Δ · T`, with T the lower-triangular all-ones matrix:
+  the cumulative sum of i.i.d. increments.
+* **Brownian bridge** (Moskowitz & Caflisch 1996; Glasserman 2004 §3.1).
+  `B_{τ_n} = √τ_n ξ_1` first. Then, for an interval `(a, b)` with both ends
+  known, the midpoint `c = ⌊(a + b)/2⌋` is drawn as
+
+  ```
+  B_c = [(τ_b − τ_c) B_a + (τ_c − τ_a) B_b]/(τ_b − τ_a) + √((τ_c − τ_a)(τ_b − τ_c)/(τ_b − τ_a)) ξ_j,
+  ```
+
+  breadth-first, with `B_0 = 0` at τ = 0. These are the exact Gaussian
+  conditional laws, so `LLᵀ = C`.
+* **PCA** (Acworth, Broadie & Glasserman 1998).
+  `C = VΛVᵀ`, `L = V Λ^{1/2}`, eigenvalues decreasing. Among all L with
+  `LLᵀ = C`, this maximises the variance carried by the first k
+  coordinates, for every k.
+
+**Where the variance goes.** These are computed exactly
+(`construction_structure.csv`). They give the share of path variance
+`tr C` carried by ξ_1. The analogous share of `Var(mean B)`, the leading
+linear driver of Ā, is in the same CSV.
+
+| m | sequential | bridge | PCA |
+|---|---|---|---|
+| 4 | 0.50 | 0.78 | 0.84 |
+| 12 | 0.17 | 0.70 | 0.81 |
+| 52 | 0.04 | 0.67 | 0.81 |
+
+Sequential construction spreads the important direction across all
+coordinates as m grows. That is the mechanism behind phase 2's loss of the
+RQMC advantage at m = 52. It is also why dimension reduction *might*
+recover it. Whether it does is an empirical question, because the
+integrand is not linear in B.
+
+## III.3 Wall-clock budgets: unbiasedness, intervals and cost
+
+**Stopping by time.** A timed estimator keeps adding i.i.d. units until
+the elapsed time exceeds the budget. For MC a unit is a block of paths; for
+RQMC it is an independent scrambling of a fixed number of points.
+
+The number of units R is a stopping time, but it depends only on the clock,
+never on the simulated values. Conditional on R the units are still i.i.d.
+with mean θ, so `E[θ̂] = θ`. The minimum is 4 RQMC units or 2 MC blocks.
+
+The clock is affected by system load, so R, and hence the variance, is
+random and not exactly reproducible. The estimator's expectation is
+unaffected.
+
+**Confidence intervals.**
+
+* **RQMC.** With R scramblings, the interval is `mean ± t_{R−1, 0.975} · sd/√R`.
+  Phase 2 used 1.96 here; with R = 8 that gives nominal coverage of about
+  0.91 rather than 0.95 under normality.
+* **MC.** z = 1.96 on the per-path SE (thousands of paths).
+
+**Points per scrambling.** n_s is the largest power of two such that 10
+scramblings fit in the budget under the measured cost model
+`t(n) = a + b·n`. Here `a` is the per-scrambling overhead, mostly building
+the Owen-scrambled Sobol generator, and `b` is the per-point cost. Both are
+fitted per (construction, m) by timing n = 2⁶ and 2¹² (`calibration.csv`).
+This choice is a heuristic trade-off: larger n_s exploits the RQMC rate,
+and more scramblings give a better SE.
+
+**Time-normalised comparison.**
+
+```
+wnMSE = MSE × (mean measured wall time per estimate).
+```
+
+For MC this is budget-invariant. For RQMC it is favourable when the rate
+exceeds N^{−1/2}, and we report it per budget. Regret is
+`√(wnMSE / min over fixed samplers of wnMSE)`: the RMSE ratio at equal
+measured time.
+
+## III.4 Budget accounting of the phase-2 selector (audit)
+
+The phase-2 selector:
+
+1. gave each of J candidates `n_0 = max(16, ⌊fB/(J c)⌋)` pilot paths, with
+   c the calibrated seconds per path;
+2. charged the final run with `B − fB` (the *nominal* pilot).
+
+**Measured on six representative research scenarios** (`m × σ`,
+K/S₀ = 1, T = 1):
+
+* **Charged cost.** The calibrated pilot cost Σ n_0 c was ≈ nominal, except
+  at m = 52 with B = 2 ms, where the 16-path minimum made it **2.1–2.5×**
+  nominal.
+* **Measured pilot time.** The pilot's wall time was **6–400× nominal**,
+  i.e. **0.6–27× the whole budget B**. The calibration is per path and
+  misses per-call overhead (estimator dispatch, plus ≥ 8 Sobol scrambler
+  constructions for each RQMC candidate).
+* **Fixed runs also missed their nominal budgets.** Median measured/nominal
+  was 0.5–2.0 for MC and 0.85–8.3 for RQMC: the RQMC overhead grows with m
+  at small budgets.
+
+**Fix (`asian_experiments.adaptive_select`).**
+
+* `accounting="charged"` (default) gives the final run
+  `B − Σ n_0 c`, floored at 0.
+* The pilot's measured wall time is always recorded.
+* `accounting="nominal"` reproduces the stored phase-2 numbers bit for bit;
+  it was verified on one scenario at 1e-16.
+
+**Phase 3 avoids the issue by construction:** every estimate, pilot
+included, is time-boxed and charged its measured wall time.

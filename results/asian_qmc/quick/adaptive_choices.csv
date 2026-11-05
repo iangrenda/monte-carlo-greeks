@@ -1,0 +1,17 @@
+strategy,budget,greek,chosen,count
+adaptive (MC-rate prediction),0.005,delta,MC,7
+adaptive (MC-rate prediction),0.005,delta,RQMC-pca,5
+adaptive (MC-rate prediction),0.005,gamma,MC,8
+adaptive (MC-rate prediction),0.005,gamma,RQMC-bb,2
+adaptive (MC-rate prediction),0.005,gamma,RQMC-pca,2
+adaptive (MC-rate prediction),0.005,vega,MC,10
+adaptive (MC-rate prediction),0.005,vega,RQMC-pca,2
+adaptive (N^-2 RQMC prediction),0.005,delta,MC,8
+adaptive (N^-2 RQMC prediction),0.005,delta,RQMC-pca,3
+adaptive (N^-2 RQMC prediction),0.005,delta,RQMC-seq,1
+adaptive (N^-2 RQMC prediction),0.005,gamma,MC,9
+adaptive (N^-2 RQMC prediction),0.005,gamma,RQMC-bb,1
+adaptive (N^-2 RQMC prediction),0.005,gamma,RQMC-pca,2
+adaptive (N^-2 RQMC prediction),0.005,vega,MC,10
+adaptive (N^-2 RQMC prediction),0.005,vega,RQMC-pca,1
+adaptive (N^-2 RQMC prediction),0.005,vega,RQMC-seq,1

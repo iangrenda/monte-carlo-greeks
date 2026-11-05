@@ -1,0 +1,49 @@
+strategy,budget,greek,chosen,count
+adaptive (MC-rate prediction),0.005,delta,MC,935
+adaptive (MC-rate prediction),0.005,delta,RQMC-bb,16
+adaptive (MC-rate prediction),0.005,delta,RQMC-pca,126
+adaptive (MC-rate prediction),0.005,delta,RQMC-seq,3
+adaptive (MC-rate prediction),0.005,gamma,MC,983
+adaptive (MC-rate prediction),0.005,gamma,RQMC-bb,16
+adaptive (MC-rate prediction),0.005,gamma,RQMC-pca,74
+adaptive (MC-rate prediction),0.005,gamma,RQMC-seq,7
+adaptive (MC-rate prediction),0.005,vega,MC,922
+adaptive (MC-rate prediction),0.005,vega,RQMC-bb,26
+adaptive (MC-rate prediction),0.005,vega,RQMC-pca,120
+adaptive (MC-rate prediction),0.005,vega,RQMC-seq,12
+adaptive (MC-rate prediction),0.05,delta,MC,655
+adaptive (MC-rate prediction),0.05,delta,RQMC-bb,31
+adaptive (MC-rate prediction),0.05,delta,RQMC-pca,387
+adaptive (MC-rate prediction),0.05,delta,RQMC-seq,7
+adaptive (MC-rate prediction),0.05,gamma,MC,702
+adaptive (MC-rate prediction),0.05,gamma,RQMC-bb,11
+adaptive (MC-rate prediction),0.05,gamma,RQMC-pca,366
+adaptive (MC-rate prediction),0.05,gamma,RQMC-seq,1
+adaptive (MC-rate prediction),0.05,vega,MC,662
+adaptive (MC-rate prediction),0.05,vega,RQMC-bb,46
+adaptive (MC-rate prediction),0.05,vega,RQMC-pca,359
+adaptive (MC-rate prediction),0.05,vega,RQMC-seq,13
+adaptive (N^-2 RQMC prediction),0.005,delta,MC,1036
+adaptive (N^-2 RQMC prediction),0.005,delta,RQMC-bb,6
+adaptive (N^-2 RQMC prediction),0.005,delta,RQMC-pca,35
+adaptive (N^-2 RQMC prediction),0.005,delta,RQMC-seq,3
+adaptive (N^-2 RQMC prediction),0.005,gamma,MC,1054
+adaptive (N^-2 RQMC prediction),0.005,gamma,RQMC-bb,2
+adaptive (N^-2 RQMC prediction),0.005,gamma,RQMC-pca,22
+adaptive (N^-2 RQMC prediction),0.005,gamma,RQMC-seq,2
+adaptive (N^-2 RQMC prediction),0.005,vega,MC,1056
+adaptive (N^-2 RQMC prediction),0.005,vega,RQMC-bb,2
+adaptive (N^-2 RQMC prediction),0.005,vega,RQMC-pca,21
+adaptive (N^-2 RQMC prediction),0.005,vega,RQMC-seq,1
+adaptive (N^-2 RQMC prediction),0.05,delta,MC,270
+adaptive (N^-2 RQMC prediction),0.05,delta,RQMC-bb,75
+adaptive (N^-2 RQMC prediction),0.05,delta,RQMC-pca,724
+adaptive (N^-2 RQMC prediction),0.05,delta,RQMC-seq,11
+adaptive (N^-2 RQMC prediction),0.05,gamma,MC,359
+adaptive (N^-2 RQMC prediction),0.05,gamma,RQMC-bb,45
+adaptive (N^-2 RQMC prediction),0.05,gamma,RQMC-pca,661
+adaptive (N^-2 RQMC prediction),0.05,gamma,RQMC-seq,15
+adaptive (N^-2 RQMC prediction),0.05,vega,MC,267
+adaptive (N^-2 RQMC prediction),0.05,vega,RQMC-bb,92
+adaptive (N^-2 RQMC prediction),0.05,vega,RQMC-pca,684
+adaptive (N^-2 RQMC prediction),0.05,vega,RQMC-seq,37

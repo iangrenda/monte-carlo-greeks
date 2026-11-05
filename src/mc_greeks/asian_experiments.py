@@ -223,7 +223,8 @@ def run_fixed(sc: Scenario, cost: CostModel, budget: float, reps: int, seed) -> 
 # --- adaptive selection --------------------------------------------------------------------
 
 def adaptive_select(sc: Scenario, greek: str, cost: CostModel, budget: float, pilot_fraction: float,
-                    rng: np.random.Generator, candidates=None, min_nonzero: int = 0) -> tuple[tuple[str, str], dict, float]:
+                    rng: np.random.Generator, candidates=None, min_nonzero: int = 0,
+                    accounting: str = "charged") -> tuple[tuple[str, str], dict, float, dict]:
     """Pilot every applicable candidate on an equal share of the pilot budget and
     return the candidate with the smallest predicted MSE at the remaining budget.
 
@@ -240,13 +241,26 @@ def adaptive_select(sc: Scenario, greek: str, cost: CostModel, budget: float, pi
     ``min_nonzero`` nonzero per-path terms is excluded, because its sample variance
     is uninformative (often exactly 0 for rare-event estimators). If every
     candidate is excluded, DEFAULT_FALLBACK is used.
+
+    Budget accounting (phase-3 audit, docs/RESEARCH_FINDINGS.md section 8):
+      * ``accounting="nominal"`` (phase-2 behaviour, kept only to reproduce phase-2
+        numbers): the final run receives budget - pilot_fraction * budget, even when
+        the 16-path minimum makes the pilot cost more than its nominal share.
+      * ``accounting="charged"`` (default): the final run receives
+        budget - sum(n_pilot_paths * c), the calibrated cost of the pilot actually run,
+        floored at 0.
+    In both modes the returned ``info`` reports the nominal, charged and measured
+    wall-clock pilot cost. Calibration is per path and omits per-call overheads
+    (e.g. constructing a Sobol scrambler), so the wall-clock cost can be far larger.
     """
+    if accounting not in ("nominal", "charged"):
+        raise ValueError("accounting must be 'nominal' or 'charged'")
     p, f = sc.params, sc.payoff
     cands = [(m_, s_) for (m_, s_) in (candidates or CANDIDATES) if applicable(m_, greek)]
     pilot_budget = pilot_fraction * budget
-    remaining = budget - pilot_budget
     share = pilot_budget / len(cands)
-    preds = {}
+    runs = []  # (candidate, estimate) for every pilot run, in order
+    t_start = time.perf_counter()
     for meth, smp in cands:
         h = bump(meth, greek, p)
         c = cost(sc.m, meth, smp, greek)
@@ -254,24 +268,38 @@ def adaptive_select(sc: Scenario, greek: str, cost: CostModel, budget: float, pi
             n0 = max(16, int(share / (2 * c)))  # two bump sizes share the slot
             e1 = asian_estimate(meth, greek, f, p, n0, rng, smp, h=h)
             e2 = asian_estimate(meth, greek, f, p, n0, rng, smp, h=2 * h)
-            bias = (e2.value - e1.value) / 3.0
-            var_n = e1.stderr**2 * e1.n_paths
-            N = max(16, int(remaining / c))
-            preds[(meth, smp)] = bias**2 + var_n / N if e1.n_nonzero >= min_nonzero else math.inf
+            runs.append(((meth, smp), c, [e1, e2]))
         else:
             n0 = max(16, int(share / c))
             e = asian_estimate(meth, greek, f, p, n0, rng, smp, h=h)
-            N = max(16, int(remaining / c))
+            runs.append(((meth, smp), c, [e]))
+    pilot_wall = time.perf_counter() - t_start
+    charged = sum(e.n_paths * c for _, c, es in runs for e in es)
+    remaining = budget - pilot_budget if accounting == "nominal" else max(budget - charged, 0.0)
+    preds = {}
+    for (meth, smp), c, es in runs:
+        N = max(16, int(remaining / c))
+        if meth.startswith("FD"):
+            e1, e2 = es
+            bias = (e2.value - e1.value) / 3.0
+            var_n = e1.stderr**2 * e1.n_paths
+            preds[(meth, smp)] = bias**2 + var_n / N if e1.n_nonzero >= min_nonzero else math.inf
+        else:
+            e = es[0]
             preds[(meth, smp)] = e.stderr**2 * e.n_paths / N if e.n_nonzero >= min_nonzero else math.inf
     best = min(preds, key=preds.get)
     if math.isinf(preds[best]):
         best = DEFAULT_FALLBACK
         preds.setdefault(best, math.inf)
-    return best, preds, remaining
+    info = {"pilot_nominal": pilot_budget, "pilot_charged": charged, "pilot_wall": pilot_wall,
+            "pilot_overshoot": charged > pilot_budget * 1.0001, "remaining": remaining, "accounting": accounting}
+    return best, preds, remaining, info
 
 
 def run_adaptive(sc: Scenario, cost: CostModel, budget: float, reps: int, pilot_fraction: float, seed,
-                 variants=tuple(ADAPTIVE_VARIANTS)) -> pd.DataFrame:
+                 variants=tuple(ADAPTIVE_VARIANTS), accounting: str = "nominal") -> pd.DataFrame:
+    """Adaptive runs. ``accounting="nominal"`` reproduces the stored phase-2 results;
+    use "charged" for corrected budgets. Pilot wall time is recorded either way."""
     rows = []
     p, f = sc.params, sc.payoff
     for v_i, (name, (cands, frac, min_nz)) in enumerate(ADAPTIVE_VARIANTS.items()):
@@ -280,14 +308,17 @@ def run_adaptive(sc: Scenario, cost: CostModel, budget: float, reps: int, pilot_
       for g in GREEKS3:
         for r in range(reps):
             pilot_rng = make_generator([*seed, v_i, 0, GREEKS3.index(g), r])
-            (meth, smp), preds, remaining = adaptive_select(sc, g, cost, budget, frac or pilot_fraction, pilot_rng, cands, min_nz)
+            (meth, smp), preds, remaining, info = adaptive_select(sc, g, cost, budget, frac or pilot_fraction, pilot_rng,
+                                                                 cands, min_nz, accounting)
             eval_rng = make_generator([*seed, v_i, 1, GREEKS3.index(g), r])  # fresh, independent of the pilot
             n = cost.paths(remaining, sc.m, meth, smp, g)
             e = asian_estimate(meth, g, f, p, n, eval_rng, smp, h=bump(meth, g, p))
             rows.append({"sid": sc.sid, "budget": budget, "greek": g, "strategy": name,
                          "chosen": label(meth, smp), "rep": r, "value": e.value, "stderr": e.stderr,
                          "n_paths": e.n_paths, "runtime": e.runtime,
-                         "pred_mse_chosen": preds[(meth, smp)]})
+                         "pred_mse_chosen": preds[(meth, smp)], "pilot_wall": info["pilot_wall"],
+                         "pilot_charged": info["pilot_charged"], "pilot_nominal": info["pilot_nominal"],
+                         "total_wall": info["pilot_wall"] + e.runtime, "accounting": accounting})
     return pd.DataFrame(rows)
 
 
