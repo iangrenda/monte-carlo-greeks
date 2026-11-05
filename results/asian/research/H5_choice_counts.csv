@@ -1,0 +1,70 @@
+strategy,budget,greek,chosen,count
+adaptive (pilot),0.002,delta,CPW-first/MC,311
+adaptive (pilot),0.002,delta,CPW-first/RQMC,395
+adaptive (pilot),0.002,delta,CPW-last/MC,302
+adaptive (pilot),0.002,delta,CPW-last/RQMC,268
+adaptive (pilot),0.002,delta,FD-raw/MC,30
+adaptive (pilot),0.002,delta,FD-smooth/MC,2
+adaptive (pilot),0.002,delta,FD-smooth/RQMC,3
+adaptive (pilot),0.002,delta,LR/MC,89
+adaptive (pilot),0.002,delta,LR/RQMC,19
+adaptive (pilot),0.002,delta,Malliavin-avg/MC,21
+adaptive (pilot),0.002,gamma,CPW-first/MC,486
+adaptive (pilot),0.002,gamma,CPW-first/RQMC,305
+adaptive (pilot),0.002,gamma,CPW-last/MC,314
+adaptive (pilot),0.002,gamma,CPW-last/RQMC,197
+adaptive (pilot),0.002,gamma,FD-raw/MC,21
+adaptive (pilot),0.002,gamma,FD-smooth/RQMC,4
+adaptive (pilot),0.002,gamma,LR/MC,86
+adaptive (pilot),0.002,gamma,LR/RQMC,27
+adaptive (pilot),0.002,vega,CPW-first/MC,229
+adaptive (pilot),0.002,vega,CPW-first/RQMC,416
+adaptive (pilot),0.002,vega,CPW-last/MC,300
+adaptive (pilot),0.002,vega,CPW-last/RQMC,195
+adaptive (pilot),0.002,vega,FD-raw/MC,172
+adaptive (pilot),0.002,vega,FD-smooth/RQMC,7
+adaptive (pilot),0.002,vega,LR/MC,99
+adaptive (pilot),0.002,vega,LR/RQMC,22
+adaptive (pilot),0.02,delta,CPW-first/MC,224
+adaptive (pilot),0.02,delta,CPW-first/RQMC,711
+adaptive (pilot),0.02,delta,CPW-last/MC,134
+adaptive (pilot),0.02,delta,CPW-last/RQMC,267
+adaptive (pilot),0.02,delta,FD-raw/MC,20
+adaptive (pilot),0.02,delta,FD-smooth/RQMC,5
+adaptive (pilot),0.02,delta,LR/MC,40
+adaptive (pilot),0.02,delta,LR/RQMC,11
+adaptive (pilot),0.02,delta,Malliavin-avg/MC,28
+adaptive (pilot),0.02,gamma,CPW-first/MC,361
+adaptive (pilot),0.02,gamma,CPW-first/RQMC,674
+adaptive (pilot),0.02,gamma,CPW-last/MC,100
+adaptive (pilot),0.02,gamma,CPW-last/RQMC,223
+adaptive (pilot),0.02,gamma,FD-raw/MC,29
+adaptive (pilot),0.02,gamma,FD-smooth/RQMC,5
+adaptive (pilot),0.02,gamma,LR/MC,40
+adaptive (pilot),0.02,gamma,LR/RQMC,8
+adaptive (pilot),0.02,vega,CPW-first/MC,147
+adaptive (pilot),0.02,vega,CPW-first/RQMC,808
+adaptive (pilot),0.02,vega,CPW-last/MC,153
+adaptive (pilot),0.02,vega,CPW-last/RQMC,219
+adaptive (pilot),0.02,vega,FD-raw/MC,36
+adaptive (pilot),0.02,vega,FD-smooth/RQMC,12
+adaptive (pilot),0.02,vega,LR/MC,57
+adaptive (pilot),0.02,vega,LR/RQMC,8
+"adaptive-lite (3 cands, 5% pilot)",0.002,delta,CPW-first/MC,680
+"adaptive-lite (3 cands, 5% pilot)",0.002,delta,CPW-first/RQMC,706
+"adaptive-lite (3 cands, 5% pilot)",0.002,delta,FD-smooth/RQMC,54
+"adaptive-lite (3 cands, 5% pilot)",0.002,gamma,CPW-first/MC,691
+"adaptive-lite (3 cands, 5% pilot)",0.002,gamma,CPW-first/RQMC,701
+"adaptive-lite (3 cands, 5% pilot)",0.002,gamma,FD-smooth/RQMC,48
+"adaptive-lite (3 cands, 5% pilot)",0.002,vega,CPW-first/MC,699
+"adaptive-lite (3 cands, 5% pilot)",0.002,vega,CPW-first/RQMC,695
+"adaptive-lite (3 cands, 5% pilot)",0.002,vega,FD-smooth/RQMC,46
+"adaptive-lite (3 cands, 5% pilot)",0.02,delta,CPW-first/MC,533
+"adaptive-lite (3 cands, 5% pilot)",0.02,delta,CPW-first/RQMC,869
+"adaptive-lite (3 cands, 5% pilot)",0.02,delta,FD-smooth/RQMC,38
+"adaptive-lite (3 cands, 5% pilot)",0.02,gamma,CPW-first/MC,608
+"adaptive-lite (3 cands, 5% pilot)",0.02,gamma,CPW-first/RQMC,795
+"adaptive-lite (3 cands, 5% pilot)",0.02,gamma,FD-smooth/RQMC,37
+"adaptive-lite (3 cands, 5% pilot)",0.02,vega,CPW-first/MC,441
+"adaptive-lite (3 cands, 5% pilot)",0.02,vega,CPW-first/RQMC,943
+"adaptive-lite (3 cands, 5% pilot)",0.02,vega,FD-smooth/RQMC,56

@@ -1,0 +1,9 @@
+budget,greek,oracle_choice,count
+0.005,delta,CPW-first/MC,1
+0.005,delta,CPW-first/RQMC,9
+0.005,delta,FD-smooth/RQMC,2
+0.005,gamma,CPW-first/MC,4
+0.005,gamma,CPW-first/RQMC,7
+0.005,gamma,FD-raw/MC,1
+0.005,vega,CPW-first/MC,4
+0.005,vega,CPW-first/RQMC,8

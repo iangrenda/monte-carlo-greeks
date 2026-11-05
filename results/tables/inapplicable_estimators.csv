@@ -1,0 +1,37 @@
+payoff,method,greek,reason
+interval,Malliavin-loc,price,localised estimator implemented for the European call only
+interval,FD-CRN-fwd,price,"finite differences estimate Greeks, not the price"
+interval,FD-CRN-ctr,price,"finite differences estimate Greeks, not the price"
+interval,FD-IND-fwd,price,"finite differences estimate Greeks, not the price"
+interval,FD-IND-ctr,price,"finite differences estimate Greeks, not the price"
+interval,MC,delta,MC estimates the price only
+interval,Malliavin-loc,delta,localised estimator implemented for the European call only
+interval,Pathwise,delta,pathwise delta is invalid for the discontinuous payoff 'interval'
+interval,MC,gamma,MC estimates the price only
+interval,Malliavin-loc,gamma,localised estimator implemented for the European call only
+interval,Pathwise,gamma,pathwise gamma is invalid for the discontinuous payoff 'interval'
+interval,MC,vega,MC estimates the price only
+interval,Malliavin-loc,vega,localised estimator implemented for the European call only
+interval,Pathwise,vega,pathwise vega is invalid for the discontinuous payoff 'interval'
+digital,Malliavin-loc,price,localised estimator implemented for the European call only
+digital,FD-CRN-fwd,price,"finite differences estimate Greeks, not the price"
+digital,FD-CRN-ctr,price,"finite differences estimate Greeks, not the price"
+digital,FD-IND-fwd,price,"finite differences estimate Greeks, not the price"
+digital,FD-IND-ctr,price,"finite differences estimate Greeks, not the price"
+digital,MC,delta,MC estimates the price only
+digital,Malliavin-loc,delta,localised estimator implemented for the European call only
+digital,Pathwise,delta,pathwise delta is invalid for the discontinuous payoff 'digital'
+digital,MC,gamma,MC estimates the price only
+digital,Malliavin-loc,gamma,localised estimator implemented for the European call only
+digital,Pathwise,gamma,pathwise gamma is invalid for the discontinuous payoff 'digital'
+digital,MC,vega,MC estimates the price only
+digital,Malliavin-loc,vega,localised estimator implemented for the European call only
+digital,Pathwise,vega,pathwise vega is invalid for the discontinuous payoff 'digital'
+call,FD-CRN-fwd,price,"finite differences estimate Greeks, not the price"
+call,FD-CRN-ctr,price,"finite differences estimate Greeks, not the price"
+call,FD-IND-fwd,price,"finite differences estimate Greeks, not the price"
+call,FD-IND-ctr,price,"finite differences estimate Greeks, not the price"
+call,MC,delta,MC estimates the price only
+call,MC,gamma,MC estimates the price only
+call,Pathwise,gamma,"pathwise gamma is invalid: phi' has a jump, so differentiating it pathwise drops the boundary (local-time) contribution"
+call,MC,vega,MC estimates the price only

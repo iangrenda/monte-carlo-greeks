@@ -1,0 +1,41 @@
+{
+  "config": {
+    "name": "quick",
+    "ms": [
+      4,
+      12
+    ],
+    "moneyness": [
+      0.9,
+      1.0,
+      1.1
+    ],
+    "sigmas": [
+      0.2
+    ],
+    "Ts": [
+      1.0
+    ],
+    "budgets": [
+      0.004
+    ],
+    "reps": 8,
+    "pilot_fraction": 0.1,
+    "ref_points": 8192,
+    "ref_scrambles": 16,
+    "check_paths": 131072,
+    "seed": 20261104,
+    "train_fraction": 0.5
+  },
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 197 Stepping 2, GenuineIntel",
+    "numpy": "2.4.3",
+    "scipy": "1.16.2",
+    "pandas": "2.3.3",
+    "matplotlib": "3.10.7",
+    "timestamp": "2026-11-04 20:25:36"
+  },
+  "wall_seconds": 21.152862071990967
+}

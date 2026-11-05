@@ -1,0 +1,15 @@
+[21:06:04] calibrating per-path costs
+[21:06:14] references for 12 scenarios
+[21:07:29] budget 0.005s scenario 1/12 done
+[21:07:43] budget 0.005s scenario 2/12 done
+[21:07:56] budget 0.005s scenario 3/12 done
+[21:08:10] budget 0.005s scenario 4/12 done
+[21:08:25] budget 0.005s scenario 5/12 done
+[21:08:39] budget 0.005s scenario 6/12 done
+[21:08:54] budget 0.005s scenario 7/12 done
+[21:09:09] budget 0.005s scenario 8/12 done
+[21:09:37] budget 0.005s scenario 9/12 done
+[21:10:04] budget 0.005s scenario 10/12 done
+[21:10:33] budget 0.005s scenario 11/12 done
+[21:11:02] budget 0.005s scenario 12/12 done
+[21:11:06] analysis written to results/asian/

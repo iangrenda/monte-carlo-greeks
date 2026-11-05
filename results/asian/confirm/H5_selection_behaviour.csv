@@ -1,0 +1,10 @@
+strategy,budget,greek,share_chose_oracle,most_common_choice,share_most_common,n_distinct_choices
+adaptive (pilot),0.005,delta,0.4111111111111111,CPW-first/RQMC,0.5166666666666667,5
+adaptive (pilot),0.005,gamma,0.44722222222222224,CPW-first/RQMC,0.37777777777777777,6
+adaptive (pilot),0.005,vega,0.5166666666666667,CPW-first/RQMC,0.5166666666666667,6
+"adaptive-guarded (all cands, >=10 nonzero)",0.005,delta,0.5527777777777778,CPW-first/RQMC,0.6444444444444445,5
+"adaptive-guarded (all cands, >=10 nonzero)",0.005,gamma,0.6611111111111111,CPW-first/MC,0.5666666666666667,6
+"adaptive-guarded (all cands, >=10 nonzero)",0.005,vega,0.7611111111111111,CPW-first/RQMC,0.6083333333333333,3
+"adaptive-lite (3 cands, 5% pilot)",0.005,delta,0.5861111111111111,CPW-first/RQMC,0.65,3
+"adaptive-lite (3 cands, 5% pilot)",0.005,gamma,0.7111111111111111,CPW-first/MC,0.5444444444444444,2
+"adaptive-lite (3 cands, 5% pilot)",0.005,vega,0.8361111111111111,CPW-first/RQMC,0.6305555555555555,2

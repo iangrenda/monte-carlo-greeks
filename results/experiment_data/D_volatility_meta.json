@@ -1,0 +1,170 @@
+{
+  "experiment": "D_volatility",
+  "config": {
+    "name": "research",
+    "sample_sizes": [
+      1000,
+      2500,
+      5000,
+      10000,
+      25000,
+      50000,
+      100000,
+      200000
+    ],
+    "replications": 200,
+    "bump_n": 50000,
+    "bump_reps": 200,
+    "rel_bumps": [
+      0.0001,
+      0.0003,
+      0.001,
+      0.003,
+      0.01,
+      0.02,
+      0.05,
+      0.1,
+      0.2,
+      0.3
+    ],
+    "vol_bumps": [
+      0.0001,
+      0.0003,
+      0.001,
+      0.003,
+      0.01,
+      0.02,
+      0.05,
+      0.1,
+      0.15
+    ],
+    "sweep_n": 50000,
+    "sweep_reps": 200,
+    "budget": 150000,
+    "sigmas": [
+      0.1,
+      0.15,
+      0.2,
+      0.3,
+      0.4,
+      0.6
+    ],
+    "moneyness": [
+      0.8,
+      0.9,
+      0.95,
+      1.0,
+      1.05,
+      1.1,
+      1.2
+    ],
+    "maturities": [
+      0.05,
+      0.1,
+      0.25,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "paper_n": 10000,
+    "paper_reps": 100,
+    "rqmc_log2n": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17
+    ],
+    "loc_width": 10.0,
+    "seeds": {
+      "A_paper": 19990391,
+      "B_convergence": 20240001,
+      "C_bump": 20240002,
+      "D_volatility": 20240003,
+      "E_moneyness": 20240004,
+      "F_maturity": 20240005,
+      "G_payoffs": 20240006
+    }
+  },
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 197 Stepping 2, GenuineIntel",
+    "numpy": "2.4.3",
+    "scipy": "1.16.2",
+    "pandas": "2.3.3",
+    "matplotlib": "3.10.7",
+    "timestamp": "2026-11-04 18:29:34"
+  },
+  "bumps": {
+    "call": {
+      "FD-CRN-ctr": {
+        "delta": 0.0001,
+        "gamma": 0.1,
+        "vega": 0.0001
+      },
+      "FD-CRN-fwd": {
+        "delta": 0.0001,
+        "gamma": 0.01,
+        "vega": 0.0001
+      },
+      "FD-IND-ctr": {
+        "delta": 0.05,
+        "gamma": 0.2,
+        "vega": 0.05
+      },
+      "FD-IND-fwd": {
+        "delta": 0.05,
+        "gamma": 0.1,
+        "vega": 0.1
+      }
+    },
+    "digital": {
+      "FD-CRN-ctr": {
+        "delta": 0.05,
+        "gamma": 0.1,
+        "vega": 0.02
+      },
+      "FD-CRN-fwd": {
+        "delta": 0.02,
+        "gamma": 0.1,
+        "vega": 0.01
+      },
+      "FD-IND-ctr": {
+        "delta": 0.05,
+        "gamma": 0.1,
+        "vega": 0.05
+      },
+      "FD-IND-fwd": {
+        "delta": 0.02,
+        "gamma": 0.1,
+        "vega": 0.02
+      }
+    },
+    "interval": {
+      "FD-CRN-ctr": {
+        "delta": 0.05,
+        "gamma": 0.1,
+        "vega": 0.02
+      },
+      "FD-CRN-fwd": {
+        "delta": 0.02,
+        "gamma": 0.05,
+        "vega": 0.01
+      },
+      "FD-IND-ctr": {
+        "delta": 0.05,
+        "gamma": 0.1,
+        "vega": 0.05
+      },
+      "FD-IND-fwd": {
+        "delta": 0.05,
+        "gamma": 0.05,
+        "vega": 0.02
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+split,budget,greek,variant,best_fixed_train,adaptive_better_point,adaptive_worse_point,adaptive_better_2se,adaptive_worse_2se,n_test
+random half,0.005,delta,adaptive (pilot),CPW-first/RQMC,1,5,0,3,6
+random half,0.005,delta,"adaptive-lite (3 cands, 5% pilot)",CPW-first/RQMC,3,3,0,0,6
+random half,0.005,delta,"adaptive-guarded (all cands, >=10 nonzero)",CPW-first/RQMC,1,5,0,0,6
+random half,0.005,gamma,adaptive (pilot),CPW-first/RQMC,1,5,0,3,6
+random half,0.005,gamma,"adaptive-lite (3 cands, 5% pilot)",CPW-first/RQMC,4,2,1,0,6
+random half,0.005,gamma,"adaptive-guarded (all cands, >=10 nonzero)",CPW-first/RQMC,2,4,0,0,6
+random half,0.005,vega,adaptive (pilot),CPW-first/RQMC,0,6,0,4,6
+random half,0.005,vega,"adaptive-lite (3 cands, 5% pilot)",CPW-first/RQMC,2,4,0,1,6
+random half,0.005,vega,"adaptive-guarded (all cands, >=10 nonzero)",CPW-first/RQMC,2,4,0,0,6
+"train m<52, test m=52",0.005,delta,adaptive (pilot),CPW-first/RQMC,0,4,0,4,4
+"train m<52, test m=52",0.005,delta,"adaptive-lite (3 cands, 5% pilot)",CPW-first/RQMC,2,2,0,0,4
+"train m<52, test m=52",0.005,delta,"adaptive-guarded (all cands, >=10 nonzero)",CPW-first/RQMC,1,3,0,0,4
+"train m<52, test m=52",0.005,gamma,adaptive (pilot),CPW-first/RQMC,0,4,0,4,4
+"train m<52, test m=52",0.005,gamma,"adaptive-lite (3 cands, 5% pilot)",CPW-first/RQMC,4,0,1,0,4
+"train m<52, test m=52",0.005,gamma,"adaptive-guarded (all cands, >=10 nonzero)",CPW-first/RQMC,3,1,1,0,4
+"train m<52, test m=52",0.005,vega,adaptive (pilot),CPW-first/RQMC,0,4,0,4,4
+"train m<52, test m=52",0.005,vega,"adaptive-lite (3 cands, 5% pilot)",CPW-first/RQMC,3,1,0,0,4
+"train m<52, test m=52",0.005,vega,"adaptive-guarded (all cands, >=10 nonzero)",CPW-first/RQMC,3,1,0,0,4

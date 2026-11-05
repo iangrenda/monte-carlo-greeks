@@ -1,0 +1,68 @@
+{
+  "call": {
+    "FD-CRN-ctr": {
+      "delta": 0.0001,
+      "gamma": 0.1,
+      "vega": 0.0001
+    },
+    "FD-CRN-fwd": {
+      "delta": 0.0001,
+      "gamma": 0.01,
+      "vega": 0.0001
+    },
+    "FD-IND-ctr": {
+      "delta": 0.05,
+      "gamma": 0.2,
+      "vega": 0.05
+    },
+    "FD-IND-fwd": {
+      "delta": 0.05,
+      "gamma": 0.1,
+      "vega": 0.1
+    }
+  },
+  "digital": {
+    "FD-CRN-ctr": {
+      "delta": 0.05,
+      "gamma": 0.1,
+      "vega": 0.02
+    },
+    "FD-CRN-fwd": {
+      "delta": 0.02,
+      "gamma": 0.1,
+      "vega": 0.01
+    },
+    "FD-IND-ctr": {
+      "delta": 0.05,
+      "gamma": 0.1,
+      "vega": 0.05
+    },
+    "FD-IND-fwd": {
+      "delta": 0.02,
+      "gamma": 0.1,
+      "vega": 0.02
+    }
+  },
+  "interval": {
+    "FD-CRN-ctr": {
+      "delta": 0.05,
+      "gamma": 0.1,
+      "vega": 0.02
+    },
+    "FD-CRN-fwd": {
+      "delta": 0.02,
+      "gamma": 0.05,
+      "vega": 0.01
+    },
+    "FD-IND-ctr": {
+      "delta": 0.05,
+      "gamma": 0.1,
+      "vega": 0.05
+    },
+    "FD-IND-fwd": {
+      "delta": 0.05,
+      "gamma": 0.05,
+      "vega": 0.02
+    }
+  }
+}

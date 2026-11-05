@@ -1,0 +1,15 @@
+strategy,budget,greek,chosen,count
+adaptive (pilot),0.004,delta,CPW-first/MC,13
+adaptive (pilot),0.004,delta,CPW-first/RQMC,33
+adaptive (pilot),0.004,delta,CPW-last/RQMC,2
+adaptive (pilot),0.004,gamma,CPW-first/MC,18
+adaptive (pilot),0.004,gamma,CPW-first/RQMC,30
+adaptive (pilot),0.004,vega,CPW-first/MC,10
+adaptive (pilot),0.004,vega,CPW-first/RQMC,37
+adaptive (pilot),0.004,vega,CPW-last/RQMC,1
+"adaptive-lite (3 cands, 5% pilot)",0.004,delta,CPW-first/MC,16
+"adaptive-lite (3 cands, 5% pilot)",0.004,delta,CPW-first/RQMC,32
+"adaptive-lite (3 cands, 5% pilot)",0.004,gamma,CPW-first/MC,20
+"adaptive-lite (3 cands, 5% pilot)",0.004,gamma,CPW-first/RQMC,28
+"adaptive-lite (3 cands, 5% pilot)",0.004,vega,CPW-first/MC,12
+"adaptive-lite (3 cands, 5% pilot)",0.004,vega,CPW-first/RQMC,36

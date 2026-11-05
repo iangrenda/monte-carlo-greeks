@@ -1,0 +1,2 @@
+n_checks,mean_z,sd_z,max_abs_z,share_abs_z_gt_3,max_ref_se_over_rmse,median_ref_se_over_rmse
+108,-0.01367414585784713,1.0021234451634793,2.736501998372729,0.0,0.20431184066775485,0.011220248151594853
