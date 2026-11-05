@@ -214,10 +214,12 @@ def analyse(cfg, out):
     rs = refs.melt(id_vars="sid", value_vars=[f"ref_se_{g}" for g in GREEKS], var_name="k", value_name="ref_se")
     rs["greek"] = rs.k.str[7:]
     tm = tm.merge(tr[["sid", "greek", "truth"]], on=["sid", "greek"]).merge(rs[["sid", "greek", "ref_se"]], on=["sid", "greek"])
-    s = tm.groupby(["sid", "m", "budget", "greek", "strategy"]).apply(lambda d: pd.Series({
-        "mse_c": max(float(((d.value - d.truth) ** 2).mean()) - d.ref_se.iloc[0] ** 2, 1e-300),
-        "wall": d.wall.mean(), "wall_p95_over_B": float((d.wall / d.budget).quantile(0.95)), "setup": d.setup.mean()}),
-        include_groups=False).reset_index()
+    tm["e2"] = (tm.value - tm.truth) ** 2
+    tm["over"] = tm.wall / tm.budget
+    s = tm.groupby(["sid", "m", "budget", "greek", "strategy"]).agg(
+        mse=("e2", "mean"), ref_se=("ref_se", "first"), wall=("wall", "mean"),
+        wall_p95_over_B=("over", lambda v: float(v.quantile(0.95))), setup=("setup", "mean")).reset_index()
+    s["mse_c"] = np.maximum(s.mse - s.ref_se**2, 1e-300)
     s["wn"] = s.mse_c * s.wall
     ref = s[s.strategy == "pca (amortised)"].set_index(["sid", "budget", "greek"]).wn
     s["ratio_vs_pca_amortised"] = s.wn.to_numpy() / ref.reindex(s.set_index(["sid", "budget", "greek"]).index).to_numpy()
@@ -231,7 +233,10 @@ def analyse(cfg, out):
     pd.DataFrame(rows).to_csv(out / "H3_timed_ratio_vs_pca.csv", index=False)
 
     # H5: n_train sweep
-    sw = pd.read_csv(out / "ntrain_sweep.csv")
+    try:
+        sw = pd.read_csv(out / "ntrain_sweep.csv")
+    except pd.errors.EmptyDataError:
+        sw = pd.DataFrame()
     if len(sw):
         pca_n = fx[(fx.kind == "pca") & (fx.n == 2 ** cfg["sweep_log2n"])][["sid", "greek", "mse_c"]].rename(columns={"mse_c": "pca_mse"})
         sw = sw.merge(pca_n, on=["sid", "greek"], how="left")
