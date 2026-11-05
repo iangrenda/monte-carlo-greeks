@@ -1,0 +1,123 @@
+budget 0.002 scenario 1/36
+budget 0.002 scenario 2/36
+budget 0.002 scenario 3/36
+budget 0.002 scenario 4/36
+budget 0.002 scenario 5/36
+budget 0.002 scenario 6/36
+budget 0.002 scenario 7/36
+budget 0.002 scenario 8/36
+budget 0.002 scenario 9/36
+budget 0.002 scenario 10/36
+budget 0.002 scenario 11/36
+budget 0.002 scenario 12/36
+budget 0.002 scenario 13/36
+budget 0.002 scenario 14/36
+budget 0.002 scenario 15/36
+budget 0.002 scenario 16/36
+budget 0.002 scenario 17/36
+budget 0.002 scenario 18/36
+budget 0.002 scenario 19/36
+budget 0.002 scenario 20/36
+budget 0.002 scenario 21/36
+budget 0.002 scenario 22/36
+budget 0.002 scenario 23/36
+budget 0.002 scenario 24/36
+budget 0.002 scenario 25/36
+budget 0.002 scenario 26/36
+budget 0.002 scenario 27/36
+budget 0.002 scenario 28/36
+budget 0.002 scenario 29/36
+budget 0.002 scenario 30/36
+budget 0.002 scenario 31/36
+budget 0.002 scenario 32/36
+budget 0.002 scenario 33/36
+budget 0.002 scenario 34/36
+budget 0.002 scenario 35/36
+budget 0.002 scenario 36/36
+budget 0.02 scenario 1/36
+budget 0.02 scenario 2/36
+budget 0.02 scenario 3/36
+budget 0.02 scenario 4/36
+budget 0.02 scenario 5/36
+budget 0.02 scenario 6/36
+budget 0.02 scenario 7/36
+budget 0.02 scenario 8/36
+budget 0.02 scenario 9/36
+budget 0.02 scenario 10/36
+budget 0.02 scenario 11/36
+budget 0.02 scenario 12/36
+budget 0.02 scenario 13/36
+budget 0.02 scenario 14/36
+budget 0.02 scenario 15/36
+budget 0.02 scenario 16/36
+budget 0.02 scenario 17/36
+budget 0.02 scenario 18/36
+budget 0.02 scenario 19/36
+budget 0.02 scenario 20/36
+budget 0.02 scenario 21/36
+budget 0.02 scenario 22/36
+budget 0.02 scenario 23/36
+budget 0.02 scenario 24/36
+budget 0.02 scenario 25/36
+budget 0.02 scenario 26/36
+budget 0.02 scenario 27/36
+budget 0.02 scenario 28/36
+budget 0.02 scenario 29/36
+budget 0.02 scenario 30/36
+budget 0.02 scenario 31/36
+budget 0.02 scenario 32/36
+budget 0.02 scenario 33/36
+budget 0.02 scenario 34/36
+budget 0.02 scenario 35/36
+budget 0.02 scenario 36/36
+    budget  greek                                    strategy  gm_tn_regret  worst_tn_regret  median_time_over_budget
+0    0.002  delta                                CPW-first/MC      2.162786        15.334717                 0.696510
+1    0.002  delta                              CPW-first/RQMC      2.295320        10.360930                 3.842635
+2    0.002  delta                              FD-smooth/RQMC      3.595033         9.322847                 4.198827
+3    0.002  delta                                       LR/MC     14.665908       349.696712                 0.664782
+4    0.002  delta                            adaptive (pilot)     24.836967       135.448269                16.081384
+5    0.002  delta  adaptive-guarded (all cands, >=10 nonzero)     10.701334        82.875483                15.785914
+6    0.002  delta           adaptive-lite (3 cands, 5% pilot)      4.095474        18.868550                13.834678
+7    0.002  gamma                                CPW-first/MC      1.640038         6.101638                 0.713614
+8    0.002  gamma                              CPW-first/RQMC      2.484183        11.008234                 4.388239
+9    0.002  gamma                              FD-smooth/RQMC      3.938210        13.174470                 3.616915
+10   0.002  gamma                                       LR/MC     16.619730       417.130442                 0.702841
+11   0.002  gamma                            adaptive (pilot)     78.125648      9679.160949                17.440341
+12   0.002  gamma  adaptive-guarded (all cands, >=10 nonzero)     12.403510       145.193694                17.247139
+13   0.002  gamma           adaptive-lite (3 cands, 5% pilot)      4.626770        13.105092                12.224710
+14   0.002   vega                                CPW-first/MC      1.848109         8.987825                 0.613849
+15   0.002   vega                              CPW-first/RQMC      2.085563         7.462916                 4.844067
+16   0.002   vega                              FD-smooth/RQMC      3.472100        10.616096                 4.076534
+17   0.002   vega                                       LR/MC     39.847001       488.900894                 0.516630
+18   0.002   vega                            adaptive (pilot)     21.675280       131.013683                17.130116
+19   0.002   vega  adaptive-guarded (all cands, >=10 nonzero)      9.379016        24.071990                16.554335
+20   0.002   vega           adaptive-lite (3 cands, 5% pilot)      5.778895        14.472404                12.111027
+21   0.020  delta                                CPW-first/MC      4.691434        77.791722                 1.232632
+22   0.020  delta                              CPW-first/RQMC      1.171872         2.553429                 0.959423
+23   0.020  delta                              FD-smooth/RQMC      3.786679        56.927107                 1.331598
+24   0.020  delta                                       LR/MC     32.455988      1249.543420                 1.269130
+25   0.020  delta                            adaptive (pilot)      5.015596        36.445402                 2.621126
+26   0.020  delta  adaptive-guarded (all cands, >=10 nonzero)      3.756755        25.432259                 2.345493
+27   0.020  delta           adaptive-lite (3 cands, 5% pilot)      1.843293         6.841480                 1.718821
+28   0.020  gamma                                CPW-first/MC      3.830531        64.062826                 1.347706
+29   0.020  gamma                              CPW-first/RQMC      1.177126         2.070511                 1.047937
+30   0.020  gamma                              FD-smooth/RQMC      4.525829        86.478496                 1.213014
+31   0.020  gamma                                       LR/MC     38.029998       860.446099                 1.270596
+32   0.020  gamma                            adaptive (pilot)     17.215223      1541.172829                 2.392089
+33   0.020  gamma  adaptive-guarded (all cands, >=10 nonzero)      8.282830      1102.333141                 2.371580
+34   0.020  gamma           adaptive-lite (3 cands, 5% pilot)      1.693193         5.032809                 1.962425
+35   0.020   vega                                CPW-first/MC      4.023430        53.586011                 1.292627
+36   0.020   vega                              CPW-first/RQMC      1.137837         1.968631                 1.075866
+37   0.020   vega                              FD-smooth/RQMC      3.700470        82.151102                 1.208327
+38   0.020   vega                                       LR/MC    101.037440      3840.241585                 1.364197
+39   0.020   vega                            adaptive (pilot)      4.707826        33.375990                 2.550252
+40   0.020   vega  adaptive-guarded (all cands, >=10 nonzero)      3.736897        24.426431                 2.601385
+41   0.020   vega           adaptive-lite (3 cands, 5% pilot)      1.605596         6.777132                 1.826526
+                  cov_z     cov_t  mean_scrambles  mc_cov_z
+method                                                     
+CPW-first      0.904051  0.932755       11.333333  0.939468
+CPW-last       0.856481  0.885301        9.722222  0.894907
+FD-raw              NaN       NaN             NaN  0.693866
+FD-smooth      0.678241  0.710880       11.777778  0.917245
+LR             0.913657  0.943634       10.277778  0.943287
+Malliavin-avg       NaN       NaN             NaN  0.945486

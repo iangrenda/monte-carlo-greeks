@@ -1,0 +1,133 @@
+split,budget,greek,strategy,gm_regret,ci_lo,ci_hi,worst,n_test
+random half,0.005,delta,fixed: MC,7.401174503836567,3.1144247747710363,18.79343818643656,180.0360974227771,18
+random half,0.005,delta,fixed: RQMC-seq,10.23145332242583,7.842400053983014,13.121297312800593,25.103371629671333,18
+random half,0.005,delta,fixed: RQMC-bb,5.9656001443827105,4.765199360783103,7.220352187046776,11.11764694042215,18
+random half,0.005,delta,fixed: RQMC-pca,1.7278328551503164,1.248852160072764,2.3887946834957887,7.049110424328953,18
+random half,0.005,delta,best fixed on train (RQMC-pca),1.7278328551503164,1.2479483318436733,2.4446856961175523,7.049110424328953,18
+random half,0.005,delta,regime rule on train (m<=12: RQMC-pca; else MC),1.0,1.0,1.0,1.0,18
+random half,0.005,delta,a-priori rule (always RQMC-pca),1.7278328551503164,1.2636949619560751,2.4108482081143214,7.049110424328953,18
+random half,0.005,delta,"POST-HOC cost-model rule (PCA if 10x(a+64b) <= B, else MC)",1.0,1.0,1.0,1.0,18
+random half,0.005,delta,adaptive (MC-rate prediction),30.852881238065873,14.106599548674218,73.15311690249227,714.0585116744232,18
+random half,0.005,delta,adaptive (N^-2 RQMC prediction),24.321093581044487,11.03335371326,54.96760455872725,403.875298253604,18
+random half,0.005,delta,oracle (evaluation only),1.0,1.0,1.0,1.0,18
+random half,0.005,gamma,fixed: MC,5.746602865719821,2.7289185752027247,13.456071643590533,137.23042794368396,18
+random half,0.005,gamma,fixed: RQMC-seq,10.61314159632173,8.76004970375712,12.807478506224083,19.69247783349895,18
+random half,0.005,gamma,fixed: RQMC-bb,6.546137203532402,5.202865541757469,8.210204345576688,12.936497128715668,18
+random half,0.005,gamma,fixed: RQMC-pca,2.073062724204305,1.3578226684671395,3.1869397955992214,8.326067428367793,18
+random half,0.005,gamma,best fixed on train (RQMC-pca),2.073062724204305,1.3750544698058835,3.2128256585028674,8.326067428367793,18
+random half,0.005,gamma,regime rule on train (m<=12: RQMC-pca; else MC),1.0,1.0,1.0,1.0,18
+random half,0.005,gamma,a-priori rule (always RQMC-pca),2.073062724204305,1.3679702510743577,3.168871639535663,8.326067428367793,18
+random half,0.005,gamma,"POST-HOC cost-model rule (PCA if 10x(a+64b) <= B, else MC)",1.0,1.0,1.0,1.0,18
+random half,0.005,gamma,adaptive (MC-rate prediction),24.171292457124927,11.793436839491594,55.34707841158545,400.08436290512475,18
+random half,0.005,gamma,adaptive (N^-2 RQMC prediction),23.04357516336174,10.710299435011612,51.90453826014097,523.2851903353259,18
+random half,0.005,gamma,oracle (evaluation only),1.0,1.0,1.0,1.0,18
+random half,0.005,vega,fixed: MC,6.448981012990198,2.8428739030174364,15.447612293148362,103.6679077185893,18
+random half,0.005,vega,fixed: RQMC-seq,8.797748254184018,6.793858381619787,11.615892573172964,29.65162930641817,18
+random half,0.005,vega,fixed: RQMC-bb,4.759139438116885,3.738856689072467,5.993697916248181,12.341704861048726,18
+random half,0.005,vega,fixed: RQMC-pca,1.6693477536601231,1.2544792880724067,2.275421305767233,5.140673372676261,18
+random half,0.005,vega,best fixed on train (RQMC-pca),1.6693477536601231,1.2447971242479328,2.2709370108848246,5.140673372676261,18
+random half,0.005,vega,regime rule on train (m<=12: RQMC-pca; else MC),1.0,1.0,1.0,1.0,18
+random half,0.005,vega,a-priori rule (always RQMC-pca),1.6693477536601231,1.2383420690376692,2.301074680496197,5.140673372676261,18
+random half,0.005,vega,"POST-HOC cost-model rule (PCA if 10x(a+64b) <= B, else MC)",1.0,1.0,1.0,1.0,18
+random half,0.005,vega,adaptive (MC-rate prediction),26.280189635461877,11.967133532476526,58.42547160887324,373.164293844757,18
+random half,0.005,vega,adaptive (N^-2 RQMC prediction),22.685836415220965,10.894367497287194,51.04618564309562,243.67740183277587,18
+random half,0.005,vega,oracle (evaluation only),1.0,1.0,1.0,1.0,18
+random half,0.05,delta,fixed: MC,82.07836083501775,36.694980760816044,181.44808901973389,1063.7269490912638,18
+random half,0.05,delta,fixed: RQMC-seq,23.634619278674663,14.967587415470357,37.794505037571575,113.11714548120771,18
+random half,0.05,delta,fixed: RQMC-bb,8.540273756361291,6.377188280982553,11.18769032162032,21.338143581822877,18
+random half,0.05,delta,fixed: RQMC-pca,1.0,1.0,1.0,1.0,18
+random half,0.05,delta,best fixed on train (RQMC-pca),1.0,1.0,1.0,1.0,18
+random half,0.05,delta,regime rule on train (m<=4: RQMC-pca; else RQMC-pca),1.0,1.0,1.0,1.0,18
+random half,0.05,delta,a-priori rule (always RQMC-pca),1.0,1.0,1.0,1.0,18
+random half,0.05,delta,"POST-HOC cost-model rule (PCA if 10x(a+64b) <= B, else MC)",1.0,1.0,1.0,1.0,18
+random half,0.05,delta,adaptive (MC-rate prediction),14.332364322767807,5.9554443717240995,31.41575813216949,186.3063389032628,18
+random half,0.05,delta,adaptive (N^-2 RQMC prediction),7.223257368378648,3.8763932918315573,13.46232041182075,67.55087553079201,18
+random half,0.05,delta,oracle (evaluation only),1.0,1.0,1.0,1.0,18
+random half,0.05,gamma,fixed: MC,54.0807342344788,21.26827071906851,136.80006141515636,1088.73564986171,18
+random half,0.05,gamma,fixed: RQMC-seq,20.18852907622242,12.783796416500854,32.3868216307433,148.70757443934338,18
+random half,0.05,gamma,fixed: RQMC-bb,8.462567923885393,6.708248708070586,10.74230906430252,27.350737987972497,18
+random half,0.05,gamma,fixed: RQMC-pca,1.0,1.0,1.0,1.0,18
+random half,0.05,gamma,best fixed on train (RQMC-pca),1.0,1.0,1.0,1.0,18
+random half,0.05,gamma,regime rule on train (m<=4: RQMC-pca; else RQMC-pca),1.0,1.0,1.0,1.0,18
+random half,0.05,gamma,a-priori rule (always RQMC-pca),1.0,1.0,1.0,1.0,18
+random half,0.05,gamma,"POST-HOC cost-model rule (PCA if 10x(a+64b) <= B, else MC)",1.0,1.0,1.0,1.0,18
+random half,0.05,gamma,adaptive (MC-rate prediction),10.012604818607352,4.747344239612239,21.273725798516264,117.827974265541,18
+random half,0.05,gamma,adaptive (N^-2 RQMC prediction),5.8285245755751,3.545472708801417,9.580457957224299,29.23097609308052,18
+random half,0.05,gamma,oracle (evaluation only),1.0,1.0,1.0,1.0,18
+random half,0.05,vega,fixed: MC,72.23668849883916,32.99635864629684,160.41451548111132,616.6717666339373,18
+random half,0.05,vega,fixed: RQMC-seq,21.331067537546925,13.135382160262216,34.49441301824559,117.56695349765077,18
+random half,0.05,vega,fixed: RQMC-bb,7.197692360434511,5.286869551226865,9.549327685781432,19.162689043017288,18
+random half,0.05,vega,fixed: RQMC-pca,1.0,1.0,1.0,1.0,18
+random half,0.05,vega,best fixed on train (RQMC-pca),1.0,1.0,1.0,1.0,18
+random half,0.05,vega,regime rule on train (m<=4: RQMC-pca; else RQMC-pca),1.0,1.0,1.0,1.0,18
+random half,0.05,vega,a-priori rule (always RQMC-pca),1.0,1.0,1.0,1.0,18
+random half,0.05,vega,"POST-HOC cost-model rule (PCA if 10x(a+64b) <= B, else MC)",1.0,1.0,1.0,1.0,18
+random half,0.05,vega,adaptive (MC-rate prediction),13.581345900006799,6.0849382237407665,30.518227209178043,180.80740684496686,18
+random half,0.05,vega,adaptive (N^-2 RQMC prediction),6.1184220003971665,3.7237200433865674,10.112681487854337,68.51459782489638,18
+random half,0.05,vega,oracle (evaluation only),1.0,1.0,1.0,1.0,18
+"train m<52, test m=52",0.005,delta,fixed: MC,1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.005,delta,fixed: RQMC-seq,11.043805915318902,10.03028407107109,12.122758910702027,15.146054956977006,12
+"train m<52, test m=52",0.005,delta,fixed: RQMC-bb,8.78448202366939,7.804824294096457,9.8223729512254,11.11764694042215,12
+"train m<52, test m=52",0.005,delta,fixed: RQMC-pca,4.187032293387239,3.4421417275866015,5.240680853243574,9.579650237553604,12
+"train m<52, test m=52",0.005,delta,best fixed on train (RQMC-pca),4.187032293387239,3.4598585293047117,5.201889964343694,9.579650237553604,12
+"train m<52, test m=52",0.005,delta,regime rule on train (m<=4: RQMC-pca; else RQMC-pca),4.187032293387239,3.44075083670192,5.258190573939033,9.579650237553604,12
+"train m<52, test m=52",0.005,delta,a-priori rule (always RQMC-pca),4.187032293387239,3.4076707745846093,5.132668583498377,9.579650237553604,12
+"train m<52, test m=52",0.005,delta,"POST-HOC cost-model rule (PCA if 10x(a+64b) <= B, else MC)",1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.005,delta,adaptive (MC-rate prediction),5.272806129216411,4.47503860184658,6.4356752199605305,12.058213709222803,12
+"train m<52, test m=52",0.005,delta,adaptive (N^-2 RQMC prediction),4.889335494022926,4.4434504530538135,5.3238110484313115,6.110802597803463,12
+"train m<52, test m=52",0.005,delta,oracle (evaluation only),1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.005,gamma,fixed: MC,1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.005,gamma,fixed: RQMC-seq,11.241109837100518,10.413664444667539,12.10129349209778,13.513015089625531,12
+"train m<52, test m=52",0.005,gamma,fixed: RQMC-bb,10.002954803557413,9.001415886671449,11.007941127172895,12.936497128715668,12
+"train m<52, test m=52",0.005,gamma,fixed: RQMC-pca,6.537995176156435,5.698344507598491,7.427070420600305,9.63298184818722,12
+"train m<52, test m=52",0.005,gamma,best fixed on train (RQMC-pca),6.537995176156435,5.715788813316897,7.468649524047072,9.63298184818722,12
+"train m<52, test m=52",0.005,gamma,regime rule on train (m<=4: RQMC-pca; else RQMC-pca),6.537995176156435,5.747790921906545,7.427195643441293,9.63298184818722,12
+"train m<52, test m=52",0.005,gamma,a-priori rule (always RQMC-pca),6.537995176156435,5.7416683881151585,7.493724497468037,9.63298184818722,12
+"train m<52, test m=52",0.005,gamma,"POST-HOC cost-model rule (PCA if 10x(a+64b) <= B, else MC)",1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.005,gamma,adaptive (MC-rate prediction),4.951786232775785,4.656677123645831,5.317748735582696,6.542053702246082,12
+"train m<52, test m=52",0.005,gamma,adaptive (N^-2 RQMC prediction),5.019972519665582,4.367721858989792,5.711832594014214,7.767887076109149,12
+"train m<52, test m=52",0.005,gamma,oracle (evaluation only),1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.005,vega,fixed: MC,1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.005,vega,fixed: RQMC-seq,8.934911903467853,8.076956975793523,10.034229658776647,13.113471272595037,12
+"train m<52, test m=52",0.005,vega,fixed: RQMC-bb,7.123026018428943,6.2362101172525035,8.22588241055166,12.341704861048726,12
+"train m<52, test m=52",0.005,vega,fixed: RQMC-pca,3.7954002125869555,3.223576307595736,4.430990967750244,6.774999272348568,12
+"train m<52, test m=52",0.005,vega,best fixed on train (RQMC-pca),3.7954002125869555,3.2733381881415005,4.454888231215905,6.774999272348568,12
+"train m<52, test m=52",0.005,vega,regime rule on train (m<=4: RQMC-pca; else RQMC-pca),3.7954002125869555,3.2800506286745894,4.459211224618755,6.774999272348568,12
+"train m<52, test m=52",0.005,vega,a-priori rule (always RQMC-pca),3.7954002125869555,3.244280201407196,4.421797199431656,6.774999272348568,12
+"train m<52, test m=52",0.005,vega,"POST-HOC cost-model rule (PCA if 10x(a+64b) <= B, else MC)",1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.005,vega,adaptive (MC-rate prediction),4.8694397012274875,4.1252383352217095,5.724565098171847,8.044661648715833,12
+"train m<52, test m=52",0.005,vega,adaptive (N^-2 RQMC prediction),4.4986790117987185,4.1031763269109325,4.917482304194573,6.129267809481899,12
+"train m<52, test m=52",0.005,vega,oracle (evaluation only),1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,delta,fixed: MC,8.556487836800903,6.966654879839092,10.050835437048931,12.272975343313687,12
+"train m<52, test m=52",0.05,delta,fixed: RQMC-seq,16.913041664802176,14.2854705662027,19.348481175765293,23.31029585720081,12
+"train m<52, test m=52",0.05,delta,fixed: RQMC-bb,8.026932445077374,6.940536171175852,9.19061050826076,10.743392417251707,12
+"train m<52, test m=52",0.05,delta,fixed: RQMC-pca,1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,delta,best fixed on train (RQMC-pca),1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,delta,regime rule on train (m<=4: RQMC-pca; else RQMC-pca),1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,delta,a-priori rule (always RQMC-pca),1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,delta,"POST-HOC cost-model rule (PCA if 10x(a+64b) <= B, else MC)",1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,delta,adaptive (MC-rate prediction),11.801134845702977,9.954118279835104,13.360103618572346,16.985157255141285,12
+"train m<52, test m=52",0.05,delta,adaptive (N^-2 RQMC prediction),9.57607801942531,8.269554639468417,10.906760066247006,13.012391411017493,12
+"train m<52, test m=52",0.05,delta,oracle (evaluation only),1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,gamma,fixed: MC,4.846073238873842,3.819549938966075,6.025004072316701,8.933933591060194,12
+"train m<52, test m=52",0.05,gamma,fixed: RQMC-seq,9.574522032620525,7.570805987953348,11.950434732150317,18.741097982853372,12
+"train m<52, test m=52",0.05,gamma,fixed: RQMC-bb,6.821104436638178,5.309782168241258,8.108263178416774,9.279521428272178,12
+"train m<52, test m=52",0.05,gamma,fixed: RQMC-pca,1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,gamma,best fixed on train (RQMC-pca),1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,gamma,regime rule on train (m<=4: RQMC-pca; else RQMC-pca),1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,gamma,a-priori rule (always RQMC-pca),1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,gamma,"POST-HOC cost-model rule (PCA if 10x(a+64b) <= B, else MC)",1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,gamma,adaptive (MC-rate prediction),5.704985728312264,4.637701727776994,6.799732794376451,8.897469337809774,12
+"train m<52, test m=52",0.05,gamma,adaptive (N^-2 RQMC prediction),6.000767442147717,4.710985328831046,7.4707274343242025,10.949444889707053,12
+"train m<52, test m=52",0.05,gamma,oracle (evaluation only),1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,vega,fixed: MC,9.299439016971208,7.32517611974624,11.266128696809503,14.618112710426605,12
+"train m<52, test m=52",0.05,vega,fixed: RQMC-seq,17.826525757647023,14.02299923374943,22.50687896298668,31.357740664932148,12
+"train m<52, test m=52",0.05,vega,fixed: RQMC-bb,8.762556631144484,7.199776327599395,10.203342741222068,13.118772806897239,12
+"train m<52, test m=52",0.05,vega,fixed: RQMC-pca,1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,vega,best fixed on train (RQMC-pca),1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,vega,regime rule on train (m<=4: RQMC-pca; else RQMC-pca),1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,vega,a-priori rule (always RQMC-pca),1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,vega,"POST-HOC cost-model rule (PCA if 10x(a+64b) <= B, else MC)",1.0,1.0,1.0,1.0,12
+"train m<52, test m=52",0.05,vega,adaptive (MC-rate prediction),12.237279961446015,9.79470992559254,14.99429457606428,20.55696501305323,12
+"train m<52, test m=52",0.05,vega,adaptive (N^-2 RQMC prediction),10.824570034025431,8.553486431101707,13.332805746479739,19.59918827674749,12
+"train m<52, test m=52",0.05,vega,oracle (evaluation only),1.0,1.0,1.0,1.0,12

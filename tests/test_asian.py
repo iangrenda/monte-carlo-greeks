@@ -135,9 +135,13 @@ def test_adaptive_selector_guard_and_fallback():
     sc = Scenario(0, m=4, moneyness=1.0, sigma=0.2, T=1.0)
     cost = CostModel(pd.DataFrame([{"m": 4, "method": m, "sampler": s, "greek": g, "sec_per_path": 1e-7}
                                    for (m, s) in CANDIDATES for g in GREEKS3]))
-    best, preds, remaining = adaptive_select(sc, "delta", cost, 0.002, 0.1, np.random.default_rng(0))
+    best, preds, remaining, info = adaptive_select(sc, "delta", cost, 0.002, 0.1, np.random.default_rng(0),
+                                                   accounting="nominal")
     assert best in preds and remaining == pytest.approx(0.0018)
-    best, preds, _ = adaptive_select(sc, "gamma", cost, 0.002, 0.1, np.random.default_rng(0), min_nonzero=10**9)
+    # charged accounting: the final run gets the budget minus the pilot actually charged
+    best, preds, remaining, info = adaptive_select(sc, "delta", cost, 0.002, 0.1, np.random.default_rng(0))
+    assert remaining == pytest.approx(0.002 - info["pilot_charged"]) and info["pilot_wall"] > 0
+    best, preds, _, _ = adaptive_select(sc, "gamma", cost, 0.002, 0.1, np.random.default_rng(0), min_nonzero=10**9)
     assert best == DEFAULT_FALLBACK
 
 

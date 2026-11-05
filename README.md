@@ -61,8 +61,10 @@ findings):
   * The naive version failed catastrophically, with up to 500× the oracle
     RMSE. Rare-event estimators produced zero-variance pilots and were
     selected.
-  * A variance guard and a restricted candidate set make selection safe
-    (about as good as the best fixed rule) but not reliably better.
+  * A variance guard and a restricted candidate set looked "safe" in
+    phase 2. *Corrected in phase 3:* once the pilot's measured wall time is
+    charged, every adaptive variant is clearly worse than the best fixed
+    estimator. The phase-2 accounting under-charged the pilot by 6–400×.
 * The idea of conditional smoothing itself is prior art (Giles 2009;
   Zhang & Wang 2020); the contribution here is the controlled,
   cost-charged evaluation and its failure analysis.
@@ -85,6 +87,57 @@ python asian_study.py --config confirm
 
 The research run takes about 40 minutes and the confirmation run about 5.
 Outputs go to `results/asian/<config>/`, and phase-1 results are untouched.
+
+## Phase 3: dimension reduction for RQMC, under real wall-clock budgets
+
+📊 [Findings §8–9](docs/RESEARCH_FINDINGS.md#phase-3) · 🧮 [Derivations Part III](docs/mathematical_derivations.md) · 🧪 [Methodology](docs/EXPERIMENTAL_METHODOLOGY.md)
+
+**Audit first.** The phase-2 adaptive selector's pilot cost far more than
+it was charged:
+
+* the calibrated cost was up to 2.5× nominal;
+* measured wall time was 6–400× nominal, i.e. up to 33× the whole budget.
+
+The fix (`accounting="charged"`, measured pilot time) and a revalidation
+retract the phase-2 claims in favour of the restricted adaptive selector.
+The fixed-estimator conclusions stand. RQMC confidence intervals now use
+t_{R−1} instead of 1.96 (coverage 0.90 → 0.93).
+
+**Question.** With the level variable integrated out exactly (CPW-first), do
+Brownian-bridge or PCA constructions of the remaining path recover the
+randomised-QMC advantage at m = 52? Is a fixed or regime rule still better
+than pilot-based selection when budgets are *measured wall-clock time*?
+
+**Results** (36 new out-of-sample scenarios, 30 replications; established
+methods, new controlled comparison):
+
+* **Mechanism.** At fixed N, the RQMC RMSE slope at m = 52 is −0.48
+  (sequential, i.e. the MC rate), −0.65 (bridge) and **−1.01 (PCA)**.
+* **Wall-clock.** At 50 ms and m = 52, PCA-RQMC beats MC in 36/36
+  scenario-Greeks (time-normalised MSE 23–86× lower).
+* **Small budgets.** At 5 ms and m = 52, every RQMC construction loses to MC:
+  the ~0.8 ms per-scrambling overhead dominates.
+* **Selection.** Simple rules beat both pilot-based selectors in 11 of 12
+  cells, usually by 5–30×: "always PCA" at 50 ms, and "PCA if m ≤ 12, else
+  MC" learned on training scenarios at 5 ms. The pilot can't afford
+  informative RQMC samples.
+* **Post-hoc hypothesis** (not a finding). A pilot-free cost-model rule,
+  "PCA iff 10 scramblings of ≥ 64 points fit in B", matches the oracle
+  everywhere, including m = 52 extrapolation. It needs a confirmatory grid.
+
+```bash
+python asian_qmc_study.py --config research
+```
+
+```bash
+python revalidate_phase2.py
+```
+
+`asian_qmc_study.py --config research` writes `results/asian_qmc/research/`
+(about 2.5 h for the full first pass on this machine; `--rerun-timed`
+re-runs only the calibration-dependent parts, about 17 min).
+`revalidate_phase2.py` (about 25 min) writes
+`results/asian/research_revalidation/`.
 
 ---
 
@@ -235,7 +288,7 @@ print(est.value, "+/-", est.stderr, " exact:", analytical.greek(PAPER_PAYOFF, PA
 pytest
 ```
 
-175 tests cover:
+221 tests cover:
 
 * closed forms against high-order numerical derivatives;
 * the Malliavin and pathwise weights against quadrature, to 10⁻⁷, with no
@@ -264,6 +317,7 @@ src/mc_greeks/
   experiments.py       Experiments A-G
   asian.py             Asian digital: exact path simulation, LR/Malliavin, CPW-first/last, FD, RQMC
   asian_experiments.py phase-2 study: cost calibration, references, fixed runs, adaptive selectors
+  asian_qmc.py         phase 3: sequential/bridge/PCA constructions, wall-clock-budgeted RQMC, timed selectors
   visualization.py     figures
   config.py            quick / research configurations, seeds, paper table
 scripts/               one script per experiment + full_experiment.py + figures.py
