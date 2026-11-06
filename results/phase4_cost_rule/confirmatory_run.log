@@ -1,0 +1,11 @@
+[16:46:59] pooled calibration (amortised one-off setup)
+[16:47:04] rule decisions: m=8 B=5ms->RQMC-pca, m=8 B=10ms->RQMC-pca, m=8 B=20ms->RQMC-pca, m=8 B=50ms->RQMC-pca, m=8 B=100ms->RQMC-pca, m=24 B=5ms->MC, m=24 B=10ms->RQMC-pca, m=24 B=20ms->RQMC-pca, m=24 B=50ms->RQMC-pca, m=24 B=100ms->RQMC-pca, m=52 B=5ms->MC, m=52 B=10ms->MC, m=52 B=20ms->RQMC-pca, m=52 B=50ms->RQMC-pca, m=52 B=100ms->RQMC-pca, m=104 B=5ms->MC, m=104 B=10ms->MC, m=104 B=20ms->MC, m=104 B=50ms->RQMC-pca, m=104 B=100ms->RQMC-pca
+[16:47:04] references for 32 scenarios
+[17:04:35] warm-cache timed runs
+[17:05:26] warm: budget 5 ms done
+[17:06:51] warm: budget 10 ms done
+[17:09:31] warm: budget 20 ms done
+[17:16:10] warm: budget 50 ms done
+[17:29:27] warm: budget 100 ms done
+[17:29:27] cold-start runs (matrix construction inside the timed region)
+[17:30:01] {"C1_all_cells_gm_regret_le_1.25": true, "C1_max_gm_regret": 1.0186856120140513, "C2_share_correct_among_significant": 1.0, "C2_n_significant": 450, "C2_n_ambiguous": 30, "C2_pass": true, "C3_share_cells_no_worse_than_both": 1.0, "C3_pass": true, "VERDICT": "PASS"}

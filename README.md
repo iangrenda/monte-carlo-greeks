@@ -139,6 +139,46 @@ re-runs only the calibration-dependent parts, about 17 min).
 `revalidate_phase2.py` (about 25 min) writes
 `results/asian/research_revalidation/`.
 
+## Phase 4: confirming the cost rule, and Greek-aware dimension reduction
+
+📋 [Revalidation](docs/PHASE4_VALIDATION.md) · ✅ [Cost-rule confirmation](docs/PHASE4_COST_RULE_VALIDATION.md) · 📚 [Literature](docs/PHASE4_LITERATURE.md) · 📝 **[Report](docs/PHASE4_REPORT.md)** · 🧮 [Derivations Part IV](docs/mathematical_derivations.md)
+
+* **Revalidation.** 221 tests pass. The phase-3 tables were recomputed
+  independently (agreement ≤ 4e-13). Under-reported overrun tails and
+  uncharged setup costs are documented, and the outdated derivation text is
+  reconciled.
+* **Pre-registered cost rule: PASS.** The rule "PCA-RQMC iff 10 scramblings
+  of ≥ 64 points fit in the budget, else MC" was frozen in git (`5f657d4`)
+  before testing. On 32 unseen contracts at 5–100 ms:
+  * worst regret 1.02;
+  * the better sampler chosen in 450/450 statistically clear cells.
+
+  Caveat: its threshold is 1.3–2.6× below the true crossover at m ≥ 52,
+  and the budget grid did not probe that gap.
+* **Greek-aware gradient PCA** (an established method: Xiao & Wang; Liu &
+  Owen; Imai & Tan):
+  * Rotating the residual Gaussian coordinates by the eigenvectors of
+    E[∇f∇fᵀ] keeps the law exact and cuts fixed-N RQMC MSE **3–20×** vs
+    path PCA (m = 12–104), at the same ≈ N⁻¹ rate.
+  * **One joint transform serves Δ, Γ and 𝒱**, because all CPW-first
+    Greeks depend on the path through one smooth scalar.
+  * 32 training paths suffice.
+  * With setup amortised: **2–10× better per unit time**. With setup
+    charged at small budgets and large m, the benefit can reverse (up to
+    16× worse at m = 104, 50 ms), via a scramble-size cliff.
+
+```bash
+python phase4_cost_validation.py
+```
+
+```bash
+python greek_aware_study.py
+```
+
+The two runs take about 43 and 16 minutes. Results go to
+`results/phase4_cost_rule/` and `results/phase4_greek_aware/`. CI
+(`.github/workflows/tests.yml`) runs the test suite on every push.
+
 ---
 
 ## Key findings
@@ -288,7 +328,7 @@ print(est.value, "+/-", est.stderr, " exact:", analytical.greek(PAPER_PAYOFF, PA
 pytest
 ```
 
-221 tests cover:
+271 tests cover:
 
 * closed forms against high-order numerical derivatives;
 * the Malliavin and pathwise weights against quadrature, to 10⁻⁷, with no
@@ -318,6 +358,7 @@ src/mc_greeks/
   asian.py             Asian digital: exact path simulation, LR/Malliavin, CPW-first/last, FD, RQMC
   asian_experiments.py phase-2 study: cost calibration, references, fixed runs, adaptive selectors
   asian_qmc.py         phase 3: sequential/bridge/PCA constructions, wall-clock-budgeted RQMC, timed selectors
+  greek_aware_qmc.py   phase 4: analytic CPW-first gradients, gradient-PCA and joint transforms
   visualization.py     figures
   config.py            quick / research configurations, seeds, paper table
 scripts/               one script per experiment + full_experiment.py + figures.py

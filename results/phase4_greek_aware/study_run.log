@@ -1,0 +1,13 @@
+[17:33:05] scenario 1/12: m=12, K/S0=0.94, sigma=0.22
+[17:33:54] scenario 2/12: m=12, K/S0=0.94, sigma=0.38
+[17:34:44] scenario 3/12: m=12, K/S0=1.06, sigma=0.22
+[17:35:36] scenario 4/12: m=12, K/S0=1.06, sigma=0.38
+[17:36:26] scenario 5/12: m=52, K/S0=0.94, sigma=0.22
+[17:37:36] scenario 6/12: m=52, K/S0=0.94, sigma=0.38
+[17:38:47] scenario 7/12: m=52, K/S0=1.06, sigma=0.22
+[17:39:58] scenario 8/12: m=52, K/S0=1.06, sigma=0.38
+[17:41:10] scenario 9/12: m=104, K/S0=0.94, sigma=0.22
+[17:43:11] scenario 10/12: m=104, K/S0=0.94, sigma=0.38
+[17:45:08] scenario 11/12: m=104, K/S0=1.06, sigma=0.22
+[17:47:05] scenario 12/12: m=104, K/S0=1.06, sigma=0.38
+[17:49:16] analysis written to C:\Users\iamfl\OneDrive\Desktop\greeks\monte-carlo-greeks\results\phase4_greek_aware\study

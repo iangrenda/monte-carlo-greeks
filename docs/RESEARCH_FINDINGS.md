@@ -518,3 +518,13 @@ scenarios):
     near 1 is within noise.
   * wnMSE assumes MSE ∝ 1/time when normalising. Budgets were met to
     within 1–9%, so the normalisation changes little.
+
+---
+
+## 10. Phase 4 (see separate documents)
+
+* `PHASE4_VALIDATION.md`: revalidation of phases 1–3.
+* `PHASE4_COST_RULE_VALIDATION.md`: pre-registered confirmation of the §9.5
+  cost rule (PASS, with qualifications).
+* `PHASE4_REPORT.md`: Greek-aware gradient PCA, joint multi-Greek transform,
+  and cost accounting. Also a consolidated report of phases 1–4.

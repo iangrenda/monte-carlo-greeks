@@ -1,0 +1,63 @@
+{
+  "config": {
+    "ms": [
+      12,
+      52,
+      104
+    ],
+    "moneyness": [
+      0.94,
+      1.06
+    ],
+    "sigmas": [
+      0.22,
+      0.38
+    ],
+    "Ts": [
+      1.0
+    ],
+    "r": 0.02,
+    "n_train": 1024,
+    "log2n": [
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ],
+    "scrambles": 16,
+    "budgets": [
+      0.01,
+      0.05
+    ],
+    "reps": 20,
+    "seed": 20261130,
+    "sweep_ntrain": [
+      32,
+      128,
+      512,
+      2048,
+      8192
+    ],
+    "sweep_log2n": 11,
+    "h_eval": 8192
+  },
+  "provenance": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 197 Stepping 2, GenuineIntel",
+    "numpy": "2.4.3",
+    "scipy": "1.16.2",
+    "pandas": "2.3.3",
+    "matplotlib": "3.10.7",
+    "timestamp": "2026-11-05 17:32:59",
+    "git_commit": "e1f79b26c1d9e1baba50375f5a7add82cfb019c5",
+    "git_dirty": true,
+    "machine": "AMD64",
+    "config_file": "configs/phase4_cost_rule.json"
+  },
+  "calibration_seconds": 5.333570200004033,
+  "wall_seconds_total": 963.5307243999996
+}

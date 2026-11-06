@@ -136,6 +136,20 @@ class TimedEstimate:
     ci_halfwidth: float   # 95%: t-quantile on (units - 1) df for RQMC, z for MC
 
 
+#: Module-level cache of construction matrices keyed by (construction, m, dt). Pass
+#: ``cache={}`` to timed_estimate for a cold start (matrix construction is then timed).
+L_CACHE: dict = {}
+
+
+def warm_cache(constructions, m: int, dt: float, cache: dict | None = None) -> float:
+    """Build construction matrices outside any timed region; returns the seconds spent."""
+    cache = L_CACHE if cache is None else cache
+    t0 = time.perf_counter()
+    for c in constructions:
+        cache[(c, m, dt)] = construction_matrix(c, m, dt)
+    return time.perf_counter() - t0
+
+
 def mc_block(m: int) -> int:
     """MC block size (power of two, ~2^15 normals) so a budget spans many blocks."""
     b = max(64, (1 << 15) // m)
@@ -144,7 +158,7 @@ def mc_block(m: int) -> int:
 
 def timed_estimate(greek: str, f: AsianDigital, p: BlackScholesParams, budget: float, rng: np.random.Generator,
                    sampler: str, points_per_scramble: int | None = None, min_units: int = 4,
-                   _L_cache: dict = {}) -> TimedEstimate:
+                   cache: dict | None = None) -> TimedEstimate:
     """CPW-first estimate of ``greek`` using (about) ``budget`` seconds of wall time.
 
     MC: blocks of i.i.d. paths until the budget is spent (at least ``min_units``
@@ -179,9 +193,11 @@ def timed_estimate(greek: str, f: AsianDigital, p: BlackScholesParams, budget: f
     if points_per_scramble is None or points_per_scramble & (points_per_scramble - 1):
         raise ValueError("RQMC needs points_per_scramble = power of two")
     key = (cons, m, dt)
-    if key not in _L_cache:
-        _L_cache[key] = construction_matrix(cons, m, dt)
-    L = _L_cache[key]
+    if cache is None:
+        cache = L_CACHE
+    if key not in cache:  # cold start: the matrix is built inside the timed region
+        cache[key] = construction_matrix(cons, m, dt)
+    L = cache[key]
     eps = np.finfo(float).eps
     rows = (1 << 18) // max(m - 1, 1)
     blk = max(64, min(points_per_scramble, 1 << (rows.bit_length() - 1)))

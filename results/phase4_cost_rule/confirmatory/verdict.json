@@ -1,0 +1,11 @@
+{
+  "C1_all_cells_gm_regret_le_1.25": true,
+  "C1_max_gm_regret": 1.0186856120140513,
+  "C2_share_correct_among_significant": 1.0,
+  "C2_n_significant": 450,
+  "C2_n_ambiguous": 30,
+  "C2_pass": true,
+  "C3_share_cells_no_worse_than_both": 1.0,
+  "C3_pass": true,
+  "VERDICT": "PASS"
+}
