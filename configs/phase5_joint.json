@@ -1,0 +1,63 @@
+{
+  "_purpose": "Phase 5C + 5D. Frozen protocol for joint (Delta, Gamma, Vega) estimation and the economics of transform reuse. Written after the Phase-5B results (which chose the scheduler below on a different grid) and committed before this study is run.",
+  "frozen_on": "2026-11-09",
+  "scheduler": {
+    "randomisation": "shift",
+    "objective": "mse",
+    "r_min": 8,
+    "alpha": 2.0,
+    "margin": 0.05,
+    "choice_reason": "Phase 5B (results/phase5_sampling_policy/study): digital shifts were feasible in every tested cell, met the deadline criterion, kept 95% coverage, and had 0.09x the time-normalised MSE of Owen scrambling. The 'ci' objective was a further 0.57x but uses 4-5 replicates, too few to estimate a 3x3 error covariance; the vector study therefore keeps r_min = 8.",
+    "mc_blocks": "MC blocks are capped at asian_qmc.mc_block(m) paths (about 2^15 normals). Phase 5B showed the uncapped look-ahead MC schedule was up to 2.2x less efficient at 50 ms than the Phase-3/4 MC because of large blocks; the cap removes that handicap from the MC comparator. This is a change made on Phase-5B data and applied here to new scenarios.",
+    "fallback": "if no RQMC schedule fits, the strategy falls back to MC and the method actually used is recorded; if MC does not fit either the run is infeasible"
+  },
+  "grid": {
+    "m": [24, 104],
+    "moneyness_K_over_S0": [0.98, 1.06],
+    "sigma": [0.24, 0.38],
+    "T": 0.9,
+    "r": 0.015,
+    "S0": 100.0,
+    "note": "8 scenarios; none of these K/S0, sigma, T, r values occur in Phases 2-4 or in the other Phase-5 configs"
+  },
+  "seed": 20261231,
+  "n_train": 256,
+  "training_instances": 5,
+  "weight_sets": {"equal": [0.3333333333333333, 0.3333333333333333, 0.3333333333333333], "delta": [0.8, 0.1, 0.1], "gamma": [0.1, 0.8, 0.1], "vega": [0.1, 0.1, 0.8]},
+  "loss": "L = sum_g w_g MSE_g / s_g^2, s_g = per-path standard deviation of the plain-MC CPW-first estimator of Greek g (2^16 independent paths per scenario)",
+  "fixed_n": {"log2n": [8, 10, 12], "scrambles_per_instance": 16, "randomisation": "Owen scrambling (as in Phase 4), reference-free: variance within training instance"},
+  "timed": {
+    "total_budgets_seconds": [0.006, 0.015, 0.030, 0.060, 0.150],
+    "replications": 40,
+    "strategies": {
+      "shared-*": "one simulation with the whole budget; all three Greeks from the same paths (MC, path PCA, or the equal-weight joint rotation, training amortised)",
+      "separate-*": "three simulations with one third of the budget each (MC, path PCA, or each Greek's own rotation, training amortised)"
+    }
+  },
+  "break_even": {
+    "per_valuation_budgets_seconds": [0.010, 0.050],
+    "M": [1, 2, 5, 10, 25, 50, 100, null],
+    "replications": 40,
+    "model": "total time M*B. A trained strategy simulates with B - C_train/M per valuation (C_train = median measured training time for that scenario; M = null means amortised, no charge); path PCA and MC simulate with B. GPCA-joint: one training, shared paths. GPCA-separate: three trainings, three simulations.",
+    "break_even": "smallest M at which the geometric-mean loss ratio against shared path PCA is below 1 (point), and at which its 95% bootstrap upper bound is below 1 (significant)"
+  },
+  "transfer": {
+    "base": "first scenario of each m; rotation trained there (5 instances)",
+    "K_factors": [0.9, 0.95, 0.98, 1.02, 1.05, 1.1],
+    "sigma_factors": [0.5, 0.75, 1.25, 1.5, 2.0],
+    "T_factors": [0.5, 0.75, 1.5, 2.0],
+    "regime_K_sigma_factors": [[0.9, 2.0], [1.1, 0.5]],
+    "log2n": 10,
+    "scrambles_per_instance": 16,
+    "compare": "path PCA; transferred rotation (trained on the base contract); fresh rotation (trained on the target contract, independent stream). Evaluation streams are independent of all training streams.",
+    "retraining_break_even": "model-based only: a transferred rotation with loss ratio rho against a fresh one needs rho^(1/alpha) times the simulation time, so retraining pays after C_train / (B (rho^(1/alpha) - 1)) valuations"
+  },
+  "references": {"estimator": "CPW-first + PCA-RQMC (Owen)", "scrambles": 32, "points_per_scramble": "2^18 if m <= 24 else 2^16", "independent_check": "plain MC, 2^20 paths"},
+  "hypotheses": {
+    "J1": "Sharing paths: at equal total time the shared simulation has lower risk-vector loss than three separate simulations, for MC by about a factor 3 and for RQMC by more.",
+    "J2": "The equal-weight joint rotation is within a factor 1.25 of the loss of rotations trained for other weightings, under every weighting (the rotation barely depends on the weights).",
+    "J3": "Amortised, the joint rotation has lower loss than path PCA at equal time.",
+    "J4": "Charged, there is a finite break-even M*; it is larger at small budgets and large m.",
+    "J5": "A rotation transferred to a neighbouring contract stays better than path PCA and close to a freshly trained one; the loss grows with the distance in K, sigma or T."
+  }
+}

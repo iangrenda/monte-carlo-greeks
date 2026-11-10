@@ -1,0 +1,64 @@
+{
+  "S1_lookahead_max_cell_miss_share_1_10": 0.044444444444444446,
+  "S1_lookahead_cells_with_miss_share_over_5pct": 0,
+  "S1_lookahead_cells": 77,
+  "S1_lookahead_max_overrun": 1.3851000003341998,
+  "S1_pass": true,
+  "S1_baseline_PCA_cells_miss_over_5pct": 9,
+  "S1_baseline_PCA_max_overrun": 7.283099999767701,
+  "S2_min_pooled_coverage_rmin8": 0.9494444444444444,
+  "S2_pass": true,
+  "S2_pooled_coverage": {
+    "MC-base": 0.9476,
+    "MC-look": 0.9506,
+    "PCA-base": 0.9487,
+    "PCA-fixed512": 0.9494,
+    "PCA-fixed64": 0.9523,
+    "PCA-opt-ci": 0.9502,
+    "PCA-opt-mse": 0.9503,
+    "PCA-shift-ci": 0.952,
+    "PCA-shift-mse": 0.9522
+  },
+  "S3_opt_over_base": {
+    "m": 0.0,
+    "budget": NaN,
+    "gm_ratio": 1.064916682195815,
+    "ci_lo": 0.9925426544778684,
+    "ci_hi": 1.1486169811527047,
+    "n_cells": 100.0
+  },
+  "S4_shift_over_owen": {
+    "m": 0.0,
+    "budget": NaN,
+    "gm_ratio": 0.08721729725497994,
+    "ci_lo": 0.08136121567675919,
+    "ci_hi": 0.09331152277310358,
+    "n_cells": 100.0
+  },
+  "S4_feasible_cells": {
+    "PCA-opt-mse": 9,
+    "PCA-shift-mse": 15
+  },
+  "S5_max_adjacent_mse_ratio": {
+    "MC-look": {
+      "24": 1.584,
+      "52": 4.109,
+      "104": 2.661
+    },
+    "PCA-base": {
+      "24": 1.467,
+      "52": 1.732,
+      "104": 2.162
+    },
+    "PCA-opt-mse": {
+      "24": 1.48,
+      "52": 1.618,
+      "104": 1.23
+    },
+    "PCA-shift-mse": {
+      "24": 1.422,
+      "52": 1.889,
+      "104": 1.853
+    }
+  }
+}

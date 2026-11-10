@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 197 Stepping 2, GenuineIntel",
+    "numpy": "2.4.3",
+    "scipy": "1.16.2",
+    "pandas": "2.3.3",
+    "matplotlib": "3.10.7",
+    "timestamp": "2026-11-09 20:53:55",
+    "git_commit": "78f64f46beeac1f718a349e8403fb532ebaa0025",
+    "git_dirty": true,
+    "machine": "AMD64",
+    "logical_cpus": 16,
+    "config_file": "configs/phase5_frontier.json",
+    "config_last_commit": "8b05116bf4e89021f2695ff5f655eecb99c6a7b1"
+  },
+  "configuration": "contended",
+  "quick": false,
+  "reps": 20,
+  "background_load_processes": 8,
+  "calibration_seconds": 3.922415800003364,
+  "wall_seconds_total": 1394.9177310466766
+}

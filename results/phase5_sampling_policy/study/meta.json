@@ -1,0 +1,30 @@
+{
+  "provenance": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 197 Stepping 2, GenuineIntel",
+    "numpy": "2.4.3",
+    "scipy": "1.16.2",
+    "pandas": "2.3.3",
+    "matplotlib": "3.10.7",
+    "timestamp": "2026-11-09 21:17:14",
+    "git_commit": "78f64f46beeac1f718a349e8403fb532ebaa0025",
+    "git_dirty": true,
+    "machine": "AMD64",
+    "logical_cpus": 16,
+    "config_file": "configs/phase5_sampling_policy.json",
+    "config_last_commit": "9bbcfc21477392f354e04c91ae25ba719fbaa503"
+  },
+  "quick": false,
+  "reps": 30,
+  "budgets": [
+    0.002,
+    0.005,
+    0.01,
+    0.02,
+    0.05
+  ],
+  "phase4_calibration_seconds": 3.7371949999978824,
+  "new_calibration_seconds": 44.615497399998276,
+  "wall_seconds_total": 1313.5098469257355
+}

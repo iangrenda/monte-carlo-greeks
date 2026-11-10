@@ -1,0 +1,22 @@
+{
+  "D1_no_wrong_material_cell": false,
+  "D1_n_wrong_material": 6,
+  "D2_gm_rho_le_1.05_every_m_greek": true,
+  "D2_max_gm_rho": 0.7205145582513107,
+  "D3_share_cells_wrong": 0.09722222222222222,
+  "n_cells": 72,
+  "class_counts": {
+    "correct": 61,
+    "wrong_material": 6,
+    "indistinguishable": 4,
+    "wrong_negligible": 1
+  },
+  "cells_rule_pca_but_point_estimate_favours_mc": 7,
+  "worst_cell_rho": 2.634809726384538,
+  "per_scenario_significant": 486,
+  "per_scenario_wrong_significant": 44,
+  "per_scenario_worst_rho_when_wrong": 3.154983736303791,
+  "max_abs_reference_check_z": 2.777320947430165,
+  "max_ref_share_of_mse": 0.0002466147218819639,
+  "VERDICT": "FRAGILE NEAR THE FRONTIER"
+}
