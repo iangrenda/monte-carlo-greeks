@@ -1,0 +1,41 @@
+{
+  "_purpose": "Phase 6B. Frozen holdout protocol: can a deterministic (training-free) rotation replace the trained joint gradient-PCA rotation for (Delta, Gamma, Vega)? Committed before the holdout run.",
+  "frozen_on": "2026-11-10",
+  "module": "src/mc_greeks/training_free.py",
+  "development": {
+    "data": "Phase-5C contracts (configs/phase5_joint.json grid; already used, 8 scenarios), fixed N = 1024, 32 SciPy-LMS replicates; results/phase6_training_free/dev/ (script scripts/phase6_tf_dev.py)",
+    "candidates_tried": ["ones", "origin", "dominant", "taylor-origin", "taylor-dominant", "weighted-origin", "weighted-dominant"],
+    "dev_loss_over_well_trained_rotation": {"m24": {"ones": 1.49, "origin": 1.61, "dominant": 1.51, "taylor-origin": 1.33, "taylor-dominant": 1.27, "weighted-origin": 1.15, "weighted-dominant": 0.99, "trained-256": 1.00, "path PCA": 4.16},
+                                             "m104": {"ones": 1.50, "origin": 1.73, "dominant": 1.79, "taylor-origin": 1.27, "taylor-dominant": 1.12, "weighted-origin": 1.25, "weighted-dominant": 1.06, "trained-256": 1.37, "path PCA": 14.5}},
+    "lesson": "the first deterministic direction matches the trained one almost exactly (|cos| >= 0.9999) in every candidate; the gap comes from the ordering of the remaining directions, which only the second-order (Taylor) and weighted candidates model",
+    "selection_rule": "primary = the candidate with the lowest development loss relative to the well-trained rotation, averaged over m"
+  },
+  "primary": "weighted-dominant",
+  "primary_definition": "eigenvectors of the deterministic surrogate G = mean_g G_g / tr(G_g), where G_g = E[h_g'(delta)^2 (c + K xi)(c + K xi)^T] with the gradient of ln Abar linearised at the design point B* (most likely path with Abar = K), delta linear along the leading direction, the one-dimensional Gaussian expectations by 80-node Gauss-Hermite quadrature, and Vega's path term ell frozen at B*",
+  "grid": "the 24 holdout contracts of configs/phase6_shift_holdout.json (m 16/40/80; none used before Phase 6). No candidate or constant was tuned on them.",
+  "seed": 20270401,
+  "loss": "equal-weight risk-vector loss: mean over Greeks of MSE_g / s_g^2 (s_g per-path sd of plain-MC CPW-first, 2^16 paths)",
+  "fixed_n": {
+    "randomisation": "SciPy LMS+shift (as in Phases 4-5); reference-free variance of replicate means",
+    "log2n": [8, 10, 12],
+    "scrambles": 64,
+    "comparators": {"pca": "path PCA", "trained-256": "joint gradient PCA from 256 gradient paths (the Phase-5 setting), 3 independent instances", "trained-oracle": "joint gradient PCA from 2^15 gradient paths (a near-exact G; the benchmark for 'training')"},
+    "oracle_n_train": 32768,
+    "trained_instances": 3,
+    "training_free": ["ones", "taylor-dominant", "weighted-origin", "weighted-dominant"]
+  },
+  "timed": {
+    "purpose": "one-off valuation: every set-up (training or deterministic construction) is inside the timed region and charged to the budget",
+    "strategies": ["MC", "pca", "trained-256", "tf-weighted-dominant", "tf-ones"],
+    "budgets_seconds": [0.005, 0.010, 0.020, 0.050],
+    "replications": 40,
+    "scheduler": {"randomisation": "shift", "objective": "mse", "r_min": 8, "alpha": 2.0, "margin": 0.05,
+                  "note": "the Phase-5 recommended scheduler, fixed before Phase 6A reports; plan with B - (measured set-up); if no RQMC plan fits, MC with the remaining time; the method used is recorded"}
+  },
+  "hypotheses": {
+    "B1": "Training can be eliminated: at fixed N the primary rotation's loss / trained-oracle loss has geometric mean <= 1.10 for every m (pooled over N), with the 95% CI upper bound <= 1.25.",
+    "B2": "The primary rotation beats practical training: loss / trained-256 loss has geometric mean < 1 for every m.",
+    "B3": "One-off, set-up charged: the primary rotation's loss <= trained-256's loss (geometric mean <= 1) in every (m, budget) cell.",
+    "B4": "The ordering beyond the first direction matters: the first-order 'ones' rotation is > 1.25x the trained-oracle loss (CI lower bound > 1.25) for every m."
+  }
+}

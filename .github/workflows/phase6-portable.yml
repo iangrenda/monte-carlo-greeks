@@ -1,0 +1,38 @@
+name: phase6-portable
+
+# Second-environment run of the Phase 6A digital-shift study (configs/phase6_shift_holdout.json,
+# configuration "portable"). Manual trigger only; results are uploaded as an artifact.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  portable:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install "numpy==2.4.3" "scipy==1.16.2" "pandas==2.3.3" "matplotlib==3.10.7" pytest
+          pip install -e .
+      - name: Describe the machine
+        run: |
+          lscpu | tee machine.txt
+          python -c "import numpy; numpy.show_config()" | tee -a machine.txt
+      - name: Run the portable study
+        env:
+          PHASE6_ENV_TAG: gha-ubuntu
+        run: python scripts/phase6_shift_study.py --config portable
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase6-portable-gha-ubuntu
+          path: |
+            results/phase6_shift/portable-gha-ubuntu
+            machine.txt

@@ -144,3 +144,71 @@ def test_calibration_returns_a_usable_model():
     for rand in bp.RANDOMISATIONS:
         assert all(c >= 0 for c in cm.rq[rand]) and cm.rqmc_cost(8, 64, rand) > 0
     assert all(c >= 0 for c in cm.mc) and cm.mc_cost(4, 256) > 0
+
+
+# --- Phase 6: cached LMS+shift --------------------------------------------------------------------
+
+def test_direction_numbers_regenerate_the_scipy_point_set():
+    d, k = 9, 8
+    V = bp.sobol_direction_ints(d, k, cache={})
+    X = np.zeros((1 << k, d), dtype=np.uint32)
+    for b in range(k):
+        X[1 << b:2 << b] = X[:1 << b] ^ V[:, b]
+    ref = bp.sobol_int_points(d, 1 << k, cache={})
+    # same point set (SciPy uses Gray-code order)
+    np.testing.assert_array_equal(np.sort(X.view([("", np.uint32)] * d).ravel()),
+                                  np.sort(np.ascontiguousarray(ref).view([("", np.uint32)] * d).ravel()))
+
+
+def test_lms_identity_and_linearity():
+    rng = np.random.default_rng(0)
+    d = 4
+    eye = (np.uint32(1) << (bp.BITS - 1 - np.arange(bp.BITS, dtype=np.uint32)))[None, :].repeat(d, 0)
+    x = rng.integers(0, 1 << bp.BITS, size=(d, 50), dtype=np.uint32)
+    np.testing.assert_array_equal(bp.lms_apply(eye, x), x)
+    M = bp.lms_masks(d, rng)
+    y = rng.integers(0, 1 << bp.BITS, size=(d, 50), dtype=np.uint32)
+    np.testing.assert_array_equal(bp.lms_apply(M, x ^ y), bp.lms_apply(M, x) ^ bp.lms_apply(M, y))
+    # lower triangular with unit diagonal: the leading digit is preserved
+    top = np.uint32(1 << (bp.BITS - 1))
+    np.testing.assert_array_equal(bp.lms_apply(M, x) & top, x & top)
+
+
+def test_lms_points_are_uniform_nets_and_unbiased():
+    d, n = 6, 64
+    V = bp.sobol_direction_ints(d, 6, cache={})
+    rng = np.random.default_rng(1)
+    for _ in range(20):
+        u = bp.lms_uniforms(V, n, rng)
+        assert u.shape == (n, d) and u.min() >= 0.0 and u.max() < 1.0
+        cells = np.sort(np.floor(u * n).astype(int), axis=0)
+        np.testing.assert_array_equal(cells, np.tile(np.arange(n)[:, None], (1, d)))
+    est = np.array([np.prod(0.5 + bp.lms_uniforms(V, 32, rng), axis=1).mean() for _ in range(4000)])
+    assert abs(est.mean() - 1.0) < 5 * est.std(ddof=1) / np.sqrt(len(est))
+
+
+def test_own_lms_has_the_same_variance_as_scipy_lms():
+    """Same randomisation, two implementations: replicate variances must agree (F-type check)."""
+    from scipy.stats import qmc
+    d, n, R = 5, 256, 600
+    f = lambda u: np.exp(np.sum(u * np.array([1.0, 0.7, 0.5, 0.3, 0.2]), axis=1))
+    V = bp.sobol_direction_ints(d, 8, cache={})
+    rng = np.random.default_rng(2)
+    own = np.array([f(bp.lms_uniforms(V, n, rng)).mean() for _ in range(R)])
+    sci = np.array([f(qmc.Sobol(d, scramble=True, seed=rng).random(n)).mean() for _ in range(R)])
+    sh = np.array([f(bp.shifted_uniforms(bp.sobol_int_points(d, n, cache={}), rng)).mean() for _ in range(R)])
+    ratio = own.var(ddof=1) / sci.var(ddof=1)
+    assert 0.8 < ratio < 1.25, ratio            # ~ +-9% sampling sd for R = 600 each
+    assert abs(own.mean() - sci.mean()) < 5 * np.sqrt(own.var() / R + sci.var() / R)
+    assert sh.var(ddof=1) > 1.5 * own.var(ddof=1)  # digital shift alone is worse for a smooth integrand
+
+
+def test_run_rqmc_with_lms_agrees_with_reference(setup):
+    f, p, L, dt = setup
+    e = bp.run_rqmc(bp.make_evaluator(f, p, "joint"), L, dt, 1024, 0.0, np.random.default_rng(11), "lms",
+                    min_units=16, max_units=16)
+    Z = np.random.default_rng(10).standard_normal((400_000, f.m))
+    for k, g in enumerate(("delta", "gamma", "vega")):
+        y = cpw_first_samples(f, p, Z, g)
+        z = (e.value[k] - y.mean()) / np.hypot(e.stderr[k], y.std(ddof=1) / np.sqrt(len(y)))
+        assert abs(z) < 5, (g, z)
