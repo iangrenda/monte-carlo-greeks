@@ -1,5 +1,7 @@
 # Phase 5 mathematics, from probability and linear algebra
 
+> **Erratum (Phase 6, 2026-11-10).** Where this document says "Owen scrambling" or "Owen-scrambled" for the RQMC randomisation, read **SciPy's LMS+shift**: `scipy.stats.qmc.Sobol(scramble=True)` applies Matoušek's random linear matrix scrambling followed by a random digital shift, not Owen's nested uniform scrambling. Every estimate stays unbiased and every number reported here is unchanged; only the label was wrong. Citations of Owen's or Liu & Owen's papers are unaffected. See `docs/PHASE6_REPORT.md`.
+
 This note derives every formula Phase 5 relies on, assuming multivariate
 normals, conditional expectation, eigen-decompositions and basic optimisation,
 but no stochastic calculus. Results that are standard are marked as such; the

@@ -149,13 +149,22 @@ def simulate(out, quick):
 
     log("part 2: one-off valuation under a wall-clock budget (set-up charged)")
     tcfg = CFG["timed"]
-    cms = {m: bp.calibrate_cost_model(m, "joint", seed=seed + 11 + m, repeats=3 if quick else 7, randomisations=(SCH["randomisation"],))
-           for m in ms}
     budgets = tcfg["budgets_seconds"][1:3] if quick else tcfg["budgets_seconds"]
+    pd.DataFrame(timed_part(scen, budgets, quick, seed, list(range(len(budgets))))).to_csv(out / "timed.csv.gz", index=False)
+    (out / "meta.json").write_text(json.dumps(meta, indent=2, default=str))
+
+
+def timed_part(scen, budgets, quick, seed, budget_index, seed_offset=0):
+    """Part 2. budget_index gives each budget's index in the protocol (seeds depend on it);
+    seed_offset != 0 gives fresh random streams (used for a declared re-run)."""
+    tcfg = CFG["timed"]
+    ms = sorted({s["m"] for s in scen})
+    cms = {m: bp.calibrate_cost_model(m, "joint", seed=seed + 11 + m + seed_offset, repeats=3 if quick else 7,
+                                      randomisations=(SCH["randomisation"],)) for m in ms}
     reps = 4 if quick else tcfg["replications"]
     strategies = tcfg["strategies"]
     rows = []
-    for b_i, B in enumerate(budgets):
+    for b_i, B in zip(budget_index, budgets):
         for sc in scen:
             f, p = objs(sc)
             dt = p.T / f.m
@@ -163,7 +172,7 @@ def simulate(out, quick):
             cm = cms[f.m]
             for r in range(reps):
                 for s_i, st in enumerate(strategies):
-                    rng = make_generator([seed, 6, b_i, sc["sid"], s_i, r])
+                    rng = make_generator([seed, 6 + seed_offset, b_i, sc["sid"], s_i, r])
                     t0 = time.perf_counter()
                     if st == "MC":
                         pl = bp.mc_schedule(B, cm, block_max=mc_block(f.m), margin=SCH["margin"])
@@ -182,13 +191,58 @@ def simulate(out, quick):
                                      **{f"v_{g}": e.value[k] for k, g in enumerate(G3)},
                                      **{f"ci_{g}": e.ci_halfwidth[k] for k, g in enumerate(G3)}))
         log(f"  budget {B * 1e3:.0f} ms done")
-    pd.DataFrame(rows).to_csv(out / "timed.csv.gz", index=False)
-    (out / "meta.json").write_text(json.dumps(meta, indent=2, default=str))
+    return rows
+
+
+def rerun_timed(out, budgets):
+    """Declared re-run of whole budget blocks of part 2 (fresh calibration and random streams).
+    Writes timed_rerun.csv.gz and a note; the original timed.csv.gz is kept unchanged."""
+    scen = pd.read_csv(out / "scenarios.csv").to_dict(orient="records")
+    allb = CFG["timed"]["budgets_seconds"]
+    idx = [allb.index(B) for B in budgets]
+    t0 = time.time()
+    rows = timed_part(scen, budgets, False, CFG["seed"], idx, seed_offset=100)
+    pd.DataFrame(rows).to_csv(out / "timed_rerun.csv.gz", index=False)
+    (out / "timed_rerun_meta.json").write_text(json.dumps({"provenance": provenance("configs/phase6_training_free.json"),
+        "budgets_rerun": budgets, "wall_seconds": time.time() - t0,
+        "reason": "robustness re-run of the 50 ms block. During the original block the computer slept inside one run (wall/budget = 1.3e5; its estimate is still valid). The re-run (fresh calibration, fresh streams, seed offset 100, machine held awake) reproduced the other anomalies (set-up about 3x the idle cost, 15-32% of RQMC runs over 1.10 x budget), so they are systematic, not caused by the sleep. The primary analysis uses the original pre-registered data; the re-run is reported as a robustness check."},
+        indent=2, default=str))
 
 
 def gm(v):
     v = np.asarray(v, float)
     return float(np.exp(np.log(v).mean())) if len(v) and np.all(v > 0) and np.all(np.isfinite(v)) else float("nan")
+
+
+def timed_tables(tm, truth, rse, scale, rng):
+    """Per-cell summaries and paired ratio table for part 2. Runs without an estimate (set-up
+    left no feasible schedule) are counted in n_infeasible and excluded from the loss."""
+    tm = tm.copy()
+    E = np.stack([tm[f"v_{g}"].to_numpy() for g in G3], 1) - np.stack([truth[s] for s in tm.sid])
+    for k, g in enumerate(G3):
+        tm[f"e_{g}"] = E[:, k]
+        tm[f"cov_{g}"] = np.where(tm.feasible, np.abs(E[:, k]) <= tm[f"ci_{g}"], np.nan)
+    tm["over"] = tm.wall / tm.budget
+    S, bt = [], {}
+    for (sid, m, B, st), d in tm.groupby(["sid", "m", "budget", "strategy"]):
+        ok = d[d.feasible.astype(bool)]
+        e = ok[[f"e_{g}" for g in G3]].to_numpy()
+        mse = np.maximum((e**2).mean(0) - rse[sid] ** 2, 1e-300) / scale[sid] ** 2
+        S.append(dict(sid=sid, m=m, budget=B, strategy=st, loss=float(mse.mean()), wall=d.wall.mean(), setup_ms=d.setup.median() * 1e3,
+                      method="|".join(sorted(set(d.method))), p95_over=float(d.over.quantile(0.95)), miss=float((d.over > 1.10).mean()),
+                      n_infeasible=int((~d.feasible.astype(bool)).sum()), **{f"cov_{g}": float(ok[f"cov_{g}"].mean()) for g in G3}))
+        idx = rng.integers(0, len(e), (NBOOT, len(e)))
+        bt[(sid, B, st)] = ((e[idx] ** 2).mean(1) / scale[sid] ** 2).mean(1)
+    S = pd.DataFrame(S)
+    rows = []
+    for (m, B), d in S.groupby(["m", "budget"]):
+        sids = sorted(d.sid.unique())
+        for a, b in [(f"tf-{PRIMARY}", "trained-256"), (f"tf-{PRIMARY}", "pca"), ("trained-256", "pca"), ("tf-ones", "pca"), ("pca", "MC")]:
+            lr = np.mean([math.log(d[(d.sid == s) & (d.strategy == a)].loss.iloc[0] / d[(d.sid == s) & (d.strategy == b)].loss.iloc[0]) for s in sids])
+            lb = np.mean([np.log(bt[(s, B, a)] / bt[(s, B, b)]) for s in sids], axis=0)
+            lo, hi = np.percentile(lb, [2.5, 97.5])
+            rows.append(dict(m=m, budget=B, num=a, den=b, gm_ratio=math.exp(lr), ci_lo=math.exp(lo), ci_hi=math.exp(hi)))
+    return S, pd.DataFrame(rows), tm
 
 
 def analyse(out):
@@ -257,37 +311,27 @@ def analyse(out):
     verdict["setup_ms_median"] = sc_.groupby(["m", "kind"]).setup_ms.median().round(3).unstack().to_dict(orient="index")
 
     tm = pd.read_csv(out / "timed.csv.gz")
-    E = np.stack([tm[f"v_{g}"].to_numpy() for g in G3], 1) - np.stack([truth[s] for s in tm.sid])
-    for k, g in enumerate(G3):
-        tm[f"e_{g}"] = E[:, k]
-        tm[f"cov_{g}"] = np.where(tm.feasible, np.abs(E[:, k]) <= tm[f"ci_{g}"], np.nan)
-    tm["over"] = tm.wall / tm.budget
-    S, bt = [], {}
-    for (sid, m, B, st), d in tm.groupby(["sid", "m", "budget", "strategy"]):
-        e = d[[f"e_{g}" for g in G3]].to_numpy()
-        mse = np.maximum((e**2).mean(0) - rse[sid] ** 2, 1e-300) / scale[sid] ** 2
-        S.append(dict(sid=sid, m=m, budget=B, strategy=st, loss=float(mse.mean()), wall=d.wall.mean(), setup_ms=d.setup.median() * 1e3,
-                      method="|".join(sorted(set(d.method))), p95_over=float(d.over.quantile(0.95)), miss=float((d.over > 1.10).mean()),
-                      **{f"cov_{g}": float(d[f"cov_{g}"].mean()) for g in G3}))
-        idx = rng.integers(0, len(e), (NBOOT, len(e)))
-        bt[(sid, B, st)] = ((e[idx] ** 2).mean(1) / scale[sid] ** 2).mean(1)
-    S = pd.DataFrame(S)
+    S, TR, tm = timed_tables(tm, truth, rse, scale, rng)
     S.to_csv(out / "timed_summary.csv", index=False)
-    rows = []
-    for (m, B), d in S.groupby(["m", "budget"]):
-        sids = sorted(d.sid.unique())
-        for a, b in [(f"tf-{PRIMARY}", "trained-256"), (f"tf-{PRIMARY}", "pca"), ("trained-256", "pca"), ("tf-ones", "pca"), ("pca", "MC")]:
-            lr = np.mean([math.log(d[(d.sid == s) & (d.strategy == a)].loss.iloc[0] / d[(d.sid == s) & (d.strategy == b)].loss.iloc[0]) for s in sids])
-            lb = np.mean([np.log(bt[(s, B, a)] / bt[(s, B, b)]) for s in sids], axis=0)
-            lo, hi = np.percentile(lb, [2.5, 97.5])
-            rows.append(dict(m=m, budget=B, num=a, den=b, gm_ratio=math.exp(lr), ci_lo=math.exp(lo), ci_hi=math.exp(hi)))
-    TR = pd.DataFrame(rows)
     TR.to_csv(out / "timed_ratios.csv", index=False)
     b3 = TR[(TR.num == f"tf-{PRIMARY}") & (TR.den == "trained-256")]
     verdict["B3_primary_over_trained256_one_off"] = {f"m{r.m}_{r.budget * 1e3:.0f}ms": [round(r.gm_ratio, 3), round(r.ci_lo, 3), round(r.ci_hi, 3)] for r in b3.itertuples()}
     verdict["B3_pass"] = bool((b3.gm_ratio <= 1.0).all())
     b3p = TR[(TR.num == f"tf-{PRIMARY}") & (TR.den == "pca")]
     verdict["B3_primary_over_pca_one_off"] = {f"m{r.m}_{r.budget * 1e3:.0f}ms": [round(r.gm_ratio, 3), round(r.ci_lo, 3), round(r.ci_hi, 3)] for r in b3p.itertuples()}
+    agg = S.groupby(["strategy", "m", "budget"]).n_infeasible.sum()
+    verdict["timed_runs_without_estimate"] = {f"{k[0]}_m{k[1]}_{k[2] * 1e3:.0f}ms": int(v) for k, v in agg[agg > 0].items()}
+    fb = tm[tm.method == "MC"].groupby(["strategy", "m", "budget"]).size()
+    verdict["timed_runs_fallen_back_to_MC"] = {f"{k[0]}_m{k[1]}_{k[2] * 1e3:.0f}ms": int(v) for k, v in fb.items() if k[0] != "MC"}
+    if (out / "timed_rerun.csv.gz").exists():
+        rr = pd.read_csv(out / "timed_rerun.csv.gz")
+        S2, TR2, _ = timed_tables(pd.concat([tm[~tm.budget.isin(rr.budget.unique())][[c for c in rr.columns]], rr], ignore_index=True),
+                                  truth, rse, scale, rng)
+        TR2.to_csv(out / "timed_ratios_with_rerun.csv", index=False)
+        S2.to_csv(out / "timed_summary_with_rerun.csv", index=False)
+        x = TR2[(TR2.num == f"tf-{PRIMARY}") & (TR2.den == "trained-256") & TR2.budget.isin(rr.budget.unique())]
+        verdict["robustness_rerun_B3"] = {f"m{r.m}_{r.budget * 1e3:.0f}ms": [round(r.gm_ratio, 3), round(r.ci_lo, 3), round(r.ci_hi, 3)] for r in x.itertuples()}
+        verdict["robustness_rerun_max_miss_share"] = float(S2[S2.budget.isin(rr.budget.unique())].miss.max())
     verdict["timed_coverage"] = tm[tm.feasible].groupby("strategy")[[f"cov_{g}" for g in G3]].mean().round(4).to_dict(orient="index")
     verdict["timed_max_miss_share"] = float(S.miss.max())
     verdict["timed_methods"] = S.groupby(["strategy"]).method.agg(lambda v: "|".join(sorted(set("|".join(v).split("|"))))).to_dict()
@@ -335,10 +379,14 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--quick", action="store_true")
     ap.add_argument("--analysis-only", action="store_true")
+    ap.add_argument("--rerun-timed-budgets", type=float, nargs="+", default=None,
+                    help="declared re-run of whole budget blocks of part 2 (seconds), e.g. 0.05")
     a = ap.parse_args()
     out = RESULTS / "phase6_training_free" / ("quick" if a.quick else "holdout")
     t0 = time.time()
-    if not a.analysis_only:
+    if a.rerun_timed_budgets:
+        rerun_timed(out, a.rerun_timed_budgets)
+    elif not a.analysis_only:
         simulate(out, a.quick)
         meta = json.loads((out / "meta.json").read_text())
         meta["wall_seconds_total"] = time.time() - t0
