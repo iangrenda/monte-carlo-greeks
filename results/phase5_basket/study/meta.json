@@ -1,0 +1,20 @@
+{
+  "provenance": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 197 Stepping 2, GenuineIntel",
+    "numpy": "2.4.3",
+    "scipy": "1.16.2",
+    "pandas": "2.3.3",
+    "matplotlib": "3.10.7",
+    "timestamp": "2026-11-10 04:46:48",
+    "git_commit": "578048d88f4e2cedf32196f93656137fb3b2bf64",
+    "git_dirty": true,
+    "machine": "AMD64",
+    "logical_cpus": 16,
+    "config_file": "configs/phase5_basket.json",
+    "config_last_commit": "9bbcfc21477392f354e04c91ae25ba719fbaa503"
+  },
+  "quick": false,
+  "wall_seconds_total": 130.31166911125183
+}

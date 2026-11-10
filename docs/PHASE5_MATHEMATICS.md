@@ -298,3 +298,11 @@ which are driven by different parts of the path (asset 1's and asset 2's).
 gradient covariance should have roughly two significant directions, and
 Greeks of different assets need not share a top direction. Phase 5E measures
 how much this costs a single joint rotation.
+
+**What the experiment showed (added after Phase 5E).** The prediction above
+was only half right. Vega's gradient covariance does need two directions
+(top-eigenvalue share 0.56–0.89). Delta's and Gamma's do not (share ≥ 0.96),
+and the top directions of all six Greeks are aligned (|cos| mostly above
+0.97). The reason is that the coefficients ã_j/A′ vary little from path to
+path, so ∇z\* is again close to one fixed vector: a fixed mixture of the two
+assets' average-gradients. See `PHASE5_GENERALISATION.md`.
