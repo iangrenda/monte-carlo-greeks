@@ -1,10 +1,15 @@
 name: phase6-portable
 
 # Second-environment run of the Phase 6A digital-shift study (configs/phase6_shift_holdout.json,
-# configuration "portable"). Manual trigger only; results are uploaded as an artifact.
+# configuration "portable"). Results are uploaded as an artifact. Runs on manual trigger
+# (once this file is on the default branch) or on a push to the Phase 6 branch that changes
+# this file (GitHub cannot dispatch a workflow that exists only on a non-default branch).
 
 on:
   workflow_dispatch:
+  push:
+    branches: [phase6/shift-holdout-training-free]
+    paths: [.github/workflows/phase6-portable.yml]
 
 jobs:
   portable:
