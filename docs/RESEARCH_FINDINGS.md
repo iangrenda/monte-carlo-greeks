@@ -1,5 +1,7 @@
 # Research findings (phase 2: Asian digital, adaptive estimator selection)
 
+> **Erratum (Phase 6, 2026-11-10).** Where this document says "Owen scrambling" or "Owen-scrambled" for the RQMC randomisation, read **SciPy's LMS+shift**: `scipy.stats.qmc.Sobol(scramble=True)` applies Matoušek's random linear matrix scrambling followed by a random digital shift, not Owen's nested uniform scrambling. Every estimate stays unbiased and every number reported here is unchanged; only the label was wrong. Citations of Owen's or Liu & Owen's papers are unaffected. See `docs/PHASE6_REPORT.md`.
+
 Every number in this file comes from an executed run, and the result files
 are named next to it. "Research grid" means `results/asian/research/`
 (36 scenarios, 2 budgets, 40 replications; 38 min wall-clock).

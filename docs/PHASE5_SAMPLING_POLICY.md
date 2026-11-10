@@ -1,5 +1,7 @@
 # Phase 5B: budget-feasible sampling schedules
 
+> **Erratum (Phase 6, 2026-11-10).** Where this document says "Owen scrambling" or "Owen-scrambled" for the RQMC randomisation, read **SciPy's LMS+shift**: `scipy.stats.qmc.Sobol(scramble=True)` applies Matoušek's random linear matrix scrambling followed by a random digital shift, not Owen's nested uniform scrambling. Every estimate stays unbiased and every number reported here is unchanged; only the label was wrong. Citations of Owen's or Liu & Owen's papers are unaffected. See `docs/PHASE6_REPORT.md`.
+
 **Summary.** Planning from a cost model and stopping by look-ahead removes
 the budget overruns. It does not, by itself, make RQMC more accurate. What
 does is replacing SciPy's per-replicate scrambling by a random digital shift

@@ -154,7 +154,8 @@ re-runs only the calibration-dependent parts, about 17 min).
   * the better sampler chosen in 450/450 statistically clear cells.
 
   Caveat: its threshold is 1.3–2.6× below the true crossover at m ≥ 52,
-  and the budget grid did not probe that gap.
+  and the budget grid did not probe that gap. *(Phase 5A probed it: the
+  rule is materially wrong there; see below.)*
 * **Greek-aware gradient PCA** (an established method: Xiao & Wang; Liu &
   Owen; Imai & Tan):
   * Rotating the residual Gaussian coordinates by the eigenvectors of
@@ -165,7 +166,9 @@ re-runs only the calibration-dependent parts, about 17 min).
   * 32 training paths suffice.
   * With setup amortised: **2–10× better per unit time**. With setup
     charged at small budgets and large m, the benefit can reverse (up to
-    16× worse at m = 104, 50 ms), via a scramble-size cliff.
+    16× worse at m = 104, 50 ms), via a scramble-size cliff. *(Superseded
+    for the Phase-5 pipeline: with shared paths, digital shifts and 256
+    training paths, training paid for itself within one valuation.)*
 
 ```bash
 python phase4_cost_validation.py
@@ -196,7 +199,7 @@ Every protocol was frozen in a config file and committed before its run.
   look-ahead keeps at most 4.4% of runs late in any cell (old scheduler:
   100% late at 2 ms, overruns up to 7.3×), with 95% coverage intact. It is
   not more accurate with the same randomisation (ratio 1.06 [0.99, 1.15]).
-* **Random digital shifts** instead of per-replicate Owen scrambling cut
+* **Random digital shifts** instead of per-replicate SciPy scrambling (LMS+shift; earlier phases mislabelled it "Owen") cut
   time-normalised MSE to 0.09× and make PCA-RQMC beat MC in all 15 cells
   tested, down to 2 ms. The MC/RQMC crossover of Phases 3–5A is largely a
   set-up-cost artefact of the scrambler.
@@ -233,6 +236,43 @@ python scripts/phase5_basket_study.py
 The runs take about 39, 23, 22, 22 and 2 minutes. Add `--quick` for a
 pipeline check (not evidence) or `--analysis-only` to rebuild tables and
 figures from saved runs. Results go to `results/phase5_*/`.
+
+---
+
+## Phase 6: a validated digital-shift baseline and a training-free joint rotation
+
+📝 **[Report](docs/PHASE6_REPORT.md)** · 🧮 [Mathematics](docs/PHASE6_MATHEMATICS.md)
+
+Protocols frozen in `959db40` before the holdout runs; 24 new contracts
+(m = 16, 40, 80).
+
+* **Erratum.** SciPy's `scramble=True` is linear matrix scrambling plus a
+  digital shift (LMS+shift), not Owen scrambling as Phases 3–5 said.
+  Numbers are unchanged.
+* **The digital shift holds up on the holdout**: 0.015–0.57× the
+  time-normalised loss of SciPy-scrambled Sobol' at ≤ 20 ms. The cause is
+  SciPy's per-replicate engine construction. A cached LMS+shift of my own
+  (same variance as SciPy's) recovers most of the gap, but is still 1.9×
+  less efficient than the bare shift. Contrary to my hypothesis, scrambling
+  bought nothing per point on these integrands (equal N⁻² rates).
+* **Training-free joint rotation.** A deterministic surrogate of the joint
+  gradient covariance (second-order expansion at the design point, Greek
+  weights by Gauss–Hermite quadrature) matches a rotation trained on 32,768
+  gradient paths (0.98–1.07× its loss). It is not better or cheaper than
+  256-path training, which was already near-optimal. Getting only the
+  leading direction right costs 1.5–1.8×.
+* **Second machine** (GitHub Actions, AMD EPYC, Linux): equal-N results
+  reproduce to 10⁻¹⁰; the timed ranking is the same with no significant
+  contradiction. The shift's advantage over SciPy is larger there; the gap
+  between own LMS and the shift is smaller (1.46× vs about 2×).
+
+```bash
+python scripts/phase6_shift_study.py
+```
+
+```bash
+python scripts/phase6_training_free_study.py
+```
 
 ---
 
@@ -383,7 +423,7 @@ print(est.value, "+/-", est.stderr, " exact:", analytical.greek(PAPER_PAYOFF, PA
 pytest
 ```
 
-325 tests cover:
+349 tests cover:
 
 * closed forms against high-order numerical derivatives;
 * the Malliavin and pathwise weights against quadrature, to 10⁻⁷, with no
@@ -422,6 +462,7 @@ src/mc_greeks/
   budget_policy.py     phase 5: cost-model schedules, look-ahead stopping, digital shifts, infeasibility
   joint_greeks.py      phase 5: shared-path Delta/Gamma/Vega, reusable rotations, risk-vector loss
   basket.py            phase 5: two-asset basket Asian digital, conditional smoothing, implicit Greeks
+  training_free.py     phase 6: deterministic joint rotations (design point, Hessian, quadrature weights)
   visualization.py     figures
   config.py            quick / research configurations, seeds, paper table
 scripts/               one script per experiment + full_experiment.py + figures.py

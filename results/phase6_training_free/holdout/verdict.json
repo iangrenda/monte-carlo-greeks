@@ -1,0 +1,332 @@
+{
+  "B1_primary_over_oracle_by_m": {
+    "16": [
+      1.065,
+      0.956,
+      1.191
+    ],
+    "40": [
+      0.982,
+      0.897,
+      1.073
+    ],
+    "80": [
+      1.014,
+      0.929,
+      1.11
+    ]
+  },
+  "B1_pass": true,
+  "B2_primary_over_trained256_by_m": {
+    "16": [
+      0.984,
+      0.889,
+      1.063
+    ],
+    "40": [
+      1.011,
+      0.93,
+      1.081
+    ],
+    "80": [
+      0.939,
+      0.862,
+      1.001
+    ]
+  },
+  "B2_pass": false,
+  "B4_ones_over_oracle_by_m": {
+    "16": [
+      1.455,
+      1.304,
+      1.628
+    ],
+    "40": [
+      1.616,
+      1.477,
+      1.769
+    ],
+    "80": [
+      1.758,
+      1.618,
+      1.908
+    ]
+  },
+  "B4_pass": true,
+  "all_vs_pca_by_m": {
+    "tf-ones_m16": 0.303,
+    "tf-taylor-dominant_m16": 0.234,
+    "tf-weighted-dominant_m16": 0.221,
+    "tf-weighted-origin_m16": 0.229,
+    "trained-256_m16": 0.225,
+    "trained-oracle_m16": 0.208,
+    "tf-ones_m40": 0.218,
+    "tf-taylor-dominant_m40": 0.132,
+    "tf-weighted-dominant_m40": 0.132,
+    "tf-weighted-origin_m40": 0.13,
+    "trained-256_m40": 0.131,
+    "trained-oracle_m40": 0.135,
+    "tf-ones_m80": 0.15,
+    "tf-taylor-dominant_m80": 0.095,
+    "tf-weighted-dominant_m80": 0.087,
+    "tf-weighted-origin_m80": 0.084,
+    "trained-256_m80": 0.092,
+    "trained-oracle_m80": 0.085
+  },
+  "all_vs_oracle_by_m": {
+    "pca_m16": 4.81,
+    "tf-ones_m16": 1.455,
+    "tf-taylor-dominant_m16": 1.123,
+    "tf-weighted-dominant_m16": 1.065,
+    "tf-weighted-origin_m16": 1.103,
+    "trained-256_m16": 1.082,
+    "pca_m40": 7.413,
+    "tf-ones_m40": 1.616,
+    "tf-taylor-dominant_m40": 0.979,
+    "tf-weighted-dominant_m40": 0.982,
+    "tf-weighted-origin_m40": 0.965,
+    "trained-256_m40": 0.972,
+    "pca_m80": 11.703,
+    "tf-ones_m80": 1.758,
+    "tf-taylor-dominant_m80": 1.111,
+    "tf-weighted-dominant_m80": 1.014,
+    "tf-weighted-origin_m80": 0.978,
+    "trained-256_m80": 1.08
+  },
+  "diagnostics_min": {
+    "ones": {
+      "cos_top": 0.99848,
+      "captured_k1": 0.9971,
+      "cum_capture_k3": 0.99348,
+      "cum_capture_k10": 0.99988
+    },
+    "taylor-dominant": {
+      "cos_top": 0.99842,
+      "captured_k1": 0.99699,
+      "cum_capture_k3": 0.99976,
+      "cum_capture_k10": 1.0
+    },
+    "weighted-dominant": {
+      "cos_top": 0.99887,
+      "captured_k1": 0.99785,
+      "cum_capture_k3": 0.99997,
+      "cum_capture_k10": 1.0
+    },
+    "weighted-origin": {
+      "cos_top": 0.99891,
+      "captured_k1": 0.99792,
+      "cum_capture_k3": 0.99996,
+      "cum_capture_k10": 1.0
+    }
+  },
+  "setup_ms_median": {
+    "16": {
+      "tf-ones": 0.025,
+      "tf-taylor-dominant": 0.253,
+      "tf-weighted-dominant": 1.173,
+      "tf-weighted-origin": 1.004,
+      "trained-256": 0.337
+    },
+    "40": {
+      "tf-ones": 0.028,
+      "tf-taylor-dominant": 0.658,
+      "tf-weighted-dominant": 1.534,
+      "tf-weighted-origin": 1.39,
+      "trained-256": 1.064
+    },
+    "80": {
+      "tf-ones": 0.033,
+      "tf-taylor-dominant": 2.181,
+      "tf-weighted-dominant": 3.185,
+      "tf-weighted-origin": 2.988,
+      "trained-256": 3.339
+    }
+  },
+  "B3_primary_over_trained256_one_off": {
+    "m16_5ms": [
+      1.739,
+      1.323,
+      2.15
+    ],
+    "m16_10ms": [
+      1.037,
+      0.858,
+      1.238
+    ],
+    "m16_20ms": [
+      0.836,
+      0.703,
+      0.984
+    ],
+    "m16_50ms": [
+      1.024,
+      0.86,
+      1.233
+    ],
+    "m40_5ms": [
+      1.008,
+      0.854,
+      1.195
+    ],
+    "m40_10ms": [
+      0.992,
+      0.827,
+      1.185
+    ],
+    "m40_20ms": [
+      1.155,
+      0.949,
+      1.391
+    ],
+    "m40_50ms": [
+      1.01,
+      0.841,
+      1.23
+    ],
+    "m80_5ms": [
+      0.015,
+      0.011,
+      0.033
+    ],
+    "m80_10ms": [
+      0.888,
+      0.718,
+      1.073
+    ],
+    "m80_20ms": [
+      0.907,
+      0.768,
+      1.078
+    ],
+    "m80_50ms": [
+      1.059,
+      0.887,
+      1.292
+    ]
+  },
+  "B3_pass": false,
+  "B3_primary_over_pca_one_off": {
+    "m16_5ms": [
+      0.382,
+      0.29,
+      0.467
+    ],
+    "m16_10ms": [
+      0.145,
+      0.12,
+      0.174
+    ],
+    "m16_20ms": [
+      0.114,
+      0.095,
+      0.135
+    ],
+    "m16_50ms": [
+      0.206,
+      0.173,
+      0.244
+    ],
+    "m40_5ms": [
+      0.184,
+      0.153,
+      0.217
+    ],
+    "m40_10ms": [
+      0.212,
+      0.177,
+      0.249
+    ],
+    "m40_20ms": [
+      0.162,
+      0.132,
+      0.196
+    ],
+    "m40_50ms": [
+      0.083,
+      0.07,
+      0.099
+    ],
+    "m80_5ms": [
+      0.485,
+      0.397,
+      0.576
+    ],
+    "m80_10ms": [
+      0.131,
+      0.106,
+      0.156
+    ],
+    "m80_20ms": [
+      0.278,
+      0.237,
+      0.326
+    ],
+    "m80_50ms": [
+      0.241,
+      0.202,
+      0.286
+    ]
+  },
+  "timed_runs_without_estimate": {
+    "tf-weighted-dominant_m16_50ms": 1,
+    "tf-weighted-dominant_m80_5ms": 1,
+    "trained-256_m80_5ms": 13
+  },
+  "timed_runs_fallen_back_to_MC": {
+    "trained-256_m80_5ms": 54
+  },
+  "robustness_rerun_B3": {
+    "m16_50ms": [
+      0.978,
+      0.847,
+      1.122
+    ],
+    "m40_50ms": [
+      1.114,
+      0.934,
+      1.336
+    ],
+    "m80_50ms": [
+      0.974,
+      0.823,
+      1.155
+    ]
+  },
+  "robustness_rerun_max_miss_share": 0.85,
+  "timed_coverage": {
+    "MC": {
+      "cov_delta": 0.9487,
+      "cov_gamma": 0.9529,
+      "cov_vega": 0.9492
+    },
+    "pca": {
+      "cov_delta": 0.9471,
+      "cov_gamma": 0.95,
+      "cov_vega": 0.9487
+    },
+    "tf-ones": {
+      "cov_delta": 0.9464,
+      "cov_gamma": 0.9531,
+      "cov_vega": 0.9534
+    },
+    "tf-weighted-dominant": {
+      "cov_delta": 0.945,
+      "cov_gamma": 0.945,
+      "cov_vega": 0.9458
+    },
+    "trained-256": {
+      "cov_delta": 0.949,
+      "cov_gamma": 0.948,
+      "cov_vega": 0.9428
+    }
+  },
+  "timed_max_miss_share": 0.9,
+  "timed_methods": {
+    "MC": "MC",
+    "pca": "RQMC-shift",
+    "tf-ones": "RQMC-shift",
+    "tf-weighted-dominant": "RQMC-shift|infeasible",
+    "trained-256": "MC|RQMC-shift|infeasible"
+  },
+  "max_abs_reference_check_z": 2.564127401671416
+}

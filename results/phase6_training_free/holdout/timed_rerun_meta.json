@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 197 Stepping 2, GenuineIntel",
+    "numpy": "2.4.3",
+    "scipy": "1.16.2",
+    "pandas": "2.3.3",
+    "matplotlib": "3.10.7",
+    "timestamp": "2026-11-10 13:25:10",
+    "git_commit": "959db4047e444c1bf7ddf35657f916522ab3a125",
+    "git_dirty": true,
+    "machine": "AMD64",
+    "logical_cpus": 16,
+    "config_file": "configs/phase6_training_free.json",
+    "config_last_commit": "959db4047e444c1bf7ddf35657f916522ab3a125"
+  },
+  "budgets_rerun": [
+    0.05
+  ],
+  "wall_seconds": 269.9433093070984,
+  "reason": "robustness re-run of the 50 ms block. During the original block the computer slept inside one run (wall/budget = 1.3e5; its estimate is still valid). The re-run (fresh calibration, fresh streams, seed offset 100, machine held awake) reproduced the other anomalies (set-up about 3x the idle cost, 15-32% of RQMC runs over 1.10 x budget), so they are systematic, not caused by the sleep. The primary analysis uses the original pre-registered data; the re-run is reported as a robustness check.",
+  "note": "reason text corrected after the re-run showed the anomalies to be systematic (see docs/PHASE6_REPORT.md)"
+}

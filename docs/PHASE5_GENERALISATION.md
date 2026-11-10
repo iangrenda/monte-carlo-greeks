@@ -1,5 +1,7 @@
 # Phase 5E: does the joint rotation survive a two-asset basket?
 
+> **Erratum (Phase 6, 2026-11-10).** Where this document says "Owen scrambling" or "Owen-scrambled" for the RQMC randomisation, read **SciPy's LMS+shift**: `scipy.stats.qmc.Sobol(scramble=True)` applies Matoušek's random linear matrix scrambling followed by a random digital shift, not Owen's nested uniform scrambling. Every estimate stays unbiased and every number reported here is unchanged; only the label was wrong. Citations of Owen's or Liu & Owen's papers are unaffected. See `docs/PHASE6_REPORT.md`.
+
 **Summary.** Mostly yes, with a weaker gain. On a two-asset basket Asian
 digital, one joint rotation over six Greeks still lowers the risk-vector loss
 2.5–5.6× against path PCA (the one-asset contract gave 3–10×). Delta and Gamma

@@ -1,0 +1,20 @@
+{
+  "provenance": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 197 Stepping 2, GenuineIntel",
+    "numpy": "2.4.3",
+    "scipy": "1.16.2",
+    "pandas": "2.3.3",
+    "matplotlib": "3.10.7",
+    "timestamp": "2026-11-10 10:51:53",
+    "git_commit": "959db4047e444c1bf7ddf35657f916522ab3a125",
+    "git_dirty": true,
+    "machine": "AMD64",
+    "logical_cpus": 16,
+    "config_file": "configs/phase6_training_free.json",
+    "config_last_commit": "959db4047e444c1bf7ddf35657f916522ab3a125"
+  },
+  "quick": false,
+  "wall_seconds_total": 8759.917027950287
+}

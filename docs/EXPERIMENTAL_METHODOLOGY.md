@@ -1,5 +1,7 @@
 # Experimental methodology (phase 2: Asian digital)
 
+> **Erratum (Phase 6, 2026-11-10).** Where this document says "Owen scrambling" or "Owen-scrambled" for the RQMC randomisation, read **SciPy's LMS+shift**: `scipy.stats.qmc.Sobol(scramble=True)` applies Matoušek's random linear matrix scrambling followed by a random digital shift, not Owen's nested uniform scrambling. Every estimate stays unbiased and every number reported here is unchanged; only the label was wrong. Citations of Owen's or Liu & Owen's papers are unaffected. See `docs/PHASE6_REPORT.md`.
+
 Phase 1's methodology for the European study is in `experimental_design.md`
 and is unchanged. Here "MC" means plain Monte Carlo with pseudorandom
 numbers, and "RQMC" means randomised quasi-Monte Carlo (scrambled Sobol

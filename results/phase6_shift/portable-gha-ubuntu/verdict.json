@@ -1,0 +1,221 @@
+{
+  "A1_own_vs_scipy_lms_gm_range": [
+    0.7679760259818735,
+    1.4611014024983533
+  ],
+  "A1_cells_ci_excluding_1": 2,
+  "A1_n_cells": 15,
+  "A1_pass": false,
+  "A2_shift_over_lms_at_N_ge_2^10": {
+    "m16_N2^10": [
+      0.683,
+      0.476,
+      0.988
+    ],
+    "m16_N2^12": [
+      1.111,
+      0.811,
+      1.49
+    ],
+    "m16_N2^14": [
+      0.638,
+      0.457,
+      0.889
+    ],
+    "m40_N2^10": [
+      0.648,
+      0.475,
+      0.879
+    ],
+    "m40_N2^12": [
+      1.38,
+      1.022,
+      1.854
+    ],
+    "m40_N2^14": [
+      0.778,
+      0.569,
+      1.058
+    ],
+    "m80_N2^10": [
+      0.875,
+      0.677,
+      1.167
+    ],
+    "m80_N2^12": [
+      1.491,
+      1.108,
+      2.012
+    ],
+    "m80_N2^14": [
+      0.908,
+      0.675,
+      1.245
+    ]
+  },
+  "A2_pass": false,
+  "slopes_median": {
+    "lms": -1.876,
+    "owen": -1.917,
+    "shift": -1.914
+  },
+  "A3_shift_over_scipy_lms_le_20ms": {
+    "m16_2ms": "SciPy LMS infeasible",
+    "m16_5ms": "SciPy LMS infeasible",
+    "m16_10ms": [
+      0.199,
+      0.121,
+      0.341
+    ],
+    "m16_20ms": [
+      0.354,
+      0.224,
+      0.621
+    ],
+    "m40_2ms": "SciPy LMS infeasible",
+    "m40_5ms": "SciPy LMS infeasible",
+    "m40_10ms": "SciPy LMS infeasible",
+    "m40_20ms": [
+      0.027,
+      0.016,
+      0.041
+    ],
+    "m80_2ms": "SciPy LMS infeasible",
+    "m80_5ms": "SciPy LMS infeasible",
+    "m80_10ms": "SciPy LMS infeasible",
+    "m80_20ms": "SciPy LMS infeasible"
+  },
+  "A3_pass": true,
+  "A4_lms_over_shift": {
+    "m16_2ms": [
+      4.098,
+      2.541,
+      7.377
+    ],
+    "m16_5ms": [
+      3.608,
+      2.176,
+      5.747
+    ],
+    "m16_10ms": [
+      0.785,
+      0.456,
+      1.263
+    ],
+    "m16_20ms": [
+      0.755,
+      0.467,
+      1.171
+    ],
+    "m16_50ms": [
+      1.975,
+      1.082,
+      3.631
+    ],
+    "m40_2ms": [
+      8.69,
+      6.025,
+      12.92
+    ],
+    "m40_5ms": [
+      1.279,
+      0.825,
+      1.972
+    ],
+    "m40_10ms": [
+      1.134,
+      0.717,
+      1.829
+    ],
+    "m40_20ms": [
+      1.178,
+      0.734,
+      1.927
+    ],
+    "m40_50ms": [
+      0.794,
+      0.447,
+      1.29
+    ],
+    "m80_5ms": [
+      1.722,
+      1.091,
+      2.706
+    ],
+    "m80_10ms": [
+      0.871,
+      0.55,
+      1.362
+    ],
+    "m80_20ms": [
+      0.908,
+      0.581,
+      1.449
+    ],
+    "m80_50ms": [
+      0.732,
+      0.443,
+      1.159
+    ]
+  },
+  "A4_gm_over_cells": 1.46180059308498,
+  "A4_pass": false,
+  "A5_coverage": {
+    "MC": {
+      "cov_delta": 0.95,
+      "cov_gamma": 0.9483,
+      "cov_vega": 0.9417
+    },
+    "lms": {
+      "cov_delta": 0.95,
+      "cov_gamma": 0.9446,
+      "cov_vega": 0.9446
+    },
+    "owen": {
+      "cov_delta": 0.9667,
+      "cov_gamma": 0.9583,
+      "cov_vega": 0.9417
+    },
+    "shift": {
+      "cov_delta": 0.9433,
+      "cov_gamma": 0.96,
+      "cov_vega": 0.955
+    }
+  },
+  "A5_min_pooled_coverage_rqmc": 0.9416666666666667,
+  "A5_max_cell_miss_share": 0.05,
+  "A5_pass": true,
+  "infeasible_cells": {
+    "MC": 0,
+    "owen": 18,
+    "lms": 2,
+    "shift": 0
+  },
+  "cost_ms": {
+    "m16": {
+      "a_scipy": 0.683,
+      "a_lms": 0.1121,
+      "a_shift": 0.056,
+      "b_us_scipy": 0.447,
+      "b_us_lms": 0.492,
+      "b_us_shift": 0.472
+    },
+    "m40": {
+      "a_scipy": 1.6437,
+      "a_lms": 0.1775,
+      "a_shift": 0.0783,
+      "b_us_scipy": 1.469,
+      "b_us_lms": 1.32,
+      "b_us_shift": 1.272
+    },
+    "m80": {
+      "a_scipy": 3.1959,
+      "a_lms": 0.2365,
+      "a_shift": 0.0823,
+      "b_us_scipy": 3.062,
+      "b_us_lms": 2.555,
+      "b_us_shift": 2.492
+    }
+  },
+  "max_abs_reference_check_z": 2.323320952049043
+}

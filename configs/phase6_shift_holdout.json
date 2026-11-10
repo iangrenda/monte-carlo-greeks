@@ -1,0 +1,56 @@
+{
+  "_purpose": "Phase 6A. Frozen holdout protocol to confirm (or not) the Phase-5B digital-shift result, and to separate its two possible causes: the cheaper randomisation itself, or SciPy's per-replicate engine construction. Committed before the study is run.",
+  "frozen_on": "2026-11-10",
+  "background": {
+    "phase5_claim": "random digital shifts had 0.09x the time-normalised MSE of SciPy-scrambled Sobol' (docs/PHASE5_SAMPLING_POLICY.md), on one 12-contract grid and one machine",
+    "erratum": "Phases 3-5 called SciPy's scramble=True 'Owen scrambling'. It is Matousek's random linear matrix scrambling plus a digital shift (LMS+shift). Results are unaffected; the label was wrong.",
+    "new_arm": "own implementation of the same LMS+shift randomisation on cached direction numbers (budget_policy.lms_uniforms), with per-replicate set-up of O(d log2 N) bit operations"
+  },
+  "randomisations": {
+    "owen": "SciPy qmc.Sobol(scramble=True), a new engine per replicate (key kept from Phase 5; it is LMS+shift)",
+    "lms": "own LMS+shift: random nonsingular lower-triangular binary matrix per coordinate applied to the generating matrix, points by doubling, digital shift, sub-2^-30 uniform jitter",
+    "shift": "digital shift (plus jitter) of one cached unscrambled Sobol' point set (Phase 5)"
+  },
+  "construction": "path PCA (joint_greeks.pca_factor); estimator: CPW-first (Delta, Gamma, Vega) on shared points",
+  "grid": {
+    "m": [16, 40, 80],
+    "moneyness_K_over_S0": [0.93, 1.07],
+    "sigma": [0.17, 0.35],
+    "T": [0.75, 1.75],
+    "r": 0.035,
+    "S0": 100.0,
+    "note": "24 scenarios. None of these m, K/S0, sigma, T or r values occurs in any earlier grid (Phases 2-5)."
+  },
+  "seed": 20270301,
+  "loss": "equal-weight risk-vector loss: mean over Greeks of MSE_g / s_g^2, s_g = per-path sd of the plain-MC CPW-first estimator (2^16 paths per scenario)",
+  "equal_n": {
+    "log2n": [6, 8, 10, 12, 14],
+    "statistic": "variance of replicate means (reference-free; all arms unbiased); ratios with 95% percentile bootstrap over replicates, geometric mean over scenarios per (m, N)"
+  },
+  "timed": {
+    "budgets_seconds": [0.002, 0.005, 0.010, 0.020, 0.050],
+    "strategies": ["MC", "owen", "lms", "shift"],
+    "order": "the four strategies run back to back within each replication",
+    "metric": "time-normalised loss = loss x mean measured wall; ratios with 95% bootstrap, geometric mean over scenarios per (m, budget)"
+  },
+  "scheduler": {
+    "objective": "mse", "r_min": 8, "alpha": 2.0, "margin": 0.05,
+    "rqmc": "budget_policy.optimise_schedule with the arm's own calibrated cost model; an infeasible plan runs nothing and is recorded (no fallback, so the arms are compared as they are)",
+    "mc": "budget_policy.mc_schedule with blocks capped at asian_qmc.mc_block(m)",
+    "cost_model": "budget_policy.calibrate_cost_model(m, 'joint', randomisations = owen, lms, shift), at the start of the run"
+  },
+  "configurations": {
+    "holdout": {"equal_n_replicates": 100, "timed_replications": 50, "role": "primary, local machine"},
+    "portable": {"equal_n_replicates": 50, "timed_replications": 20, "scenario_filter": {"sigma": 0.35, "T": 1.75},
+                 "role": "second environment (e.g. a GitHub Actions runner via .github/workflows/phase6-portable.yml); 6 scenarios. Its equal-N part uses the same seeds as the holdout run, so those numbers should reproduce exactly on any machine with the same library versions."}
+  },
+  "references": {"estimator": "CPW-first + PCA-RQMC (SciPy LMS+shift)", "scrambles": 32, "points_per_scramble": "2^18 if m <= 24 else 2^16", "independent_check": "plain MC, 2^20 paths"},
+  "hypotheses": {
+    "A1": "Implementation check: own LMS / SciPy LMS variance ratio has geometric mean in [0.9, 1.1] in every (m, N) cell (same randomisation, so equal variance in expectation).",
+    "A2": "Per-point quality: at equal N >= 2^10 the digital shift alone has larger variance than LMS+shift (shift / LMS > 1 with the 95% CI above 1 in every (m, N) cell). Theory: scrambling, unlike a shift alone, can improve the convergence rate for smooth integrands.",
+    "A3": "Replication of Phase 5B: at budgets <= 20 ms the shift has lower time-normalised loss than SciPy LMS (CI upper < 1), in every (m, budget) cell where SciPy LMS is feasible.",
+    "A4": "Cause: own LMS is at least as efficient per unit time as the shift (geometric mean over all (m, budget) cells of LMS / shift <= 1, and every cell's CI upper bound <= 1.10). If A2 and A4 hold, the Phase-5 advantage was SciPy's per-replicate overhead, not the shift.",
+    "A5": "Validity: pooled 95% coverage >= 0.93 for every RQMC arm; at most 5% of runs above 1.10 x budget in any feasible cell.",
+    "A6": "Second environment (if run): equal-N numbers reproduce; the equal-time ranking of the arms is the same."
+  }
+}
