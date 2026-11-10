@@ -1,0 +1,40 @@
+{
+  "_purpose": "Phase 5E. Frozen protocol for the generalisation test on a two-asset weighted basket Asian digital under correlated GBM. Fixed-N, reference-free (all estimators unbiased, so MSE = variance over independent Owen scramblings). Committed before the study is run.",
+  "frozen_on": "2026-11-09",
+  "module": "src/mc_greeks/basket.py",
+  "payoff": "1{w1 mean_i S1_{t_i} + w2 mean_i S2_{t_i} >= K}, smoothed by integrating out the common first-step direction Z0 = (Z1 + Z2)/sqrt(2(1+rho)); z* by Newton",
+  "greeks": ["delta1", "delta2", "gamma11", "gamma22", "vega1", "vega2"],
+  "grid": {
+    "m": [12, 26],
+    "rho": [0.0, 0.5, 0.9],
+    "K": [100.0, 106.0],
+    "S": [100.0, 100.0],
+    "sigma": [0.2, 0.4],
+    "w": [0.5, 0.5],
+    "T": 1.0,
+    "r": 0.02,
+    "note": "12 scenarios; integration dimension 2m - 1 = 23 or 51"
+  },
+  "seed": 20270105,
+  "n_train": 256,
+  "training_instances": 3,
+  "gradients": "central finite differences of the smooth per-path integrands, h = 1e-4 (basket.fd_gradients); training and evaluation use independent random streams",
+  "rotations": {
+    "pca": "eigenvectors of the residual path covariance (baseline, no training)",
+    "spec-<greek>": "eigenvectors of G_g",
+    "joint3": "trace-normalised sum over (delta1, gamma11, vega1)",
+    "joint6": "trace-normalised sum over all six Greeks"
+  },
+  "log2n": [10, 12],
+  "scrambles_per_instance": 32,
+  "scales": "per-path plain-MC standard deviation of each smoothed Greek, from 2^19 independent paths",
+  "alpha": 2.0,
+  "break_even_budgets_seconds": [0.010, 0.050],
+  "hypotheses": {
+    "E1": "The gradient covariance of every Greek stays close to rank one (top-eigenvalue share >= 0.90), as in the one-asset contract. Expected to weaken, because the smoothed integrand now depends on two path averages.",
+    "E2": "The top gradient directions of Greeks of the same asset are aligned (|cos| >= 0.90); those of different assets (delta1 vs delta2 etc.) need not be.",
+    "E3": "One joint rotation over all six Greeks costs at most a factor 1.25 in variance for any single Greek relative to that Greek's own rotation (geometric mean over scenarios).",
+    "E4": "Greek-aware rotations still reduce variance relative to path PCA (ratio < 1). Whether the gain is smaller than for the one-asset contract (Phase 4: 3-20x) is reported.",
+    "E5": "Model-based break-even number of valuations is reported from the measured training cost, the measured cost per point and the fixed-N loss ratio (variance ~ N^-alpha). It is a model estimate, not a timed experiment."
+  }
+}

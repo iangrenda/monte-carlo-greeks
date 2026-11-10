@@ -1,0 +1,71 @@
+{
+  "_purpose": "Phase 5B. Frozen protocol for comparing RQMC/MC sampling-schedule policies under wall-clock budgets. The policies are defined from a cost model and one prior constant (alpha) before any Phase-5B run; none of their constants is tuned on these scenarios. Committed before the study is run.",
+  "frozen_on": "2026-11-09",
+  "module": "src/mc_greeks/budget_policy.py",
+  "prior_constants": {
+    "alpha": 2.0,
+    "alpha_source": "Phase-4 fixed-N study (results/phase4_greek_aware/study/H2_slopes_summary.csv): PCA-RQMC RMSE slope about -1 in N for m = 12, 52, 104, i.e. variance ~ N^-2. Development data, disjoint from this grid.",
+    "r_min": 8,
+    "r_min_reason": "t_{7,0.975} = 2.36; chosen a priori as the smallest replicate count we are willing to base a t-interval on for the 'mse' objective",
+    "margin": 0.05,
+    "n_min": 16
+  },
+  "cost_model": {
+    "form": "RQMC: c0 + R (a + b N); MC: c0' + K (u + c n_b)",
+    "fit": "budget_policy.calibrate_cost_model: non-negative least squares on relative errors, medians of 7 repeats, R in {2,4,8}, N in {16,64,256,1024,4096}; one model per (m, Greek, randomisation), measured at the start of the run",
+    "phase4_model": "asian_qmc.calibrate_rqmc(pooled=True) is also measured, for the baseline scheduler only"
+  },
+  "strategies": {
+    "MC-base": "Phase-3/4 MC: asian_qmc.timed_estimate, at least 4 blocks, stop after the budget is spent",
+    "MC-look": "mc_schedule + look-ahead stopping",
+    "PCA-base": "Phase-3/4 RQMC: largest power-of-two N with 10 scramblings fitting (N >= 16), at least 4 scramblings, stop after the budget is spent",
+    "PCA-fixed64": "fixed N = 64, R from the cost model, feasible iff R >= r_min; look-ahead stopping",
+    "PCA-fixed512": "fixed N = 512, same",
+    "PCA-opt-mse": "optimise_schedule(objective='mse', r_min=8), Owen scrambling",
+    "PCA-opt-ci": "optimise_schedule(objective='ci'): minimise t^2_{R-1} N^-alpha / R, R >= 3, Owen scrambling",
+    "PCA-shift-mse": "as PCA-opt-mse with random digital shifts of a cached Sobol' set (point-set generation amortised)",
+    "PCA-shift-ci": "as PCA-opt-ci with random digital shifts"
+  },
+  "composite_policies": {
+    "phase4": "PCA-base if B >= 10 (a_m + 64 b_m) with the Phase-4 pooled model, else MC-base (the Phase-4 pipeline unchanged)",
+    "feasible-owen": "PCA-opt-mse if B >= 10 (a + 64 b) with the new Owen cost model and the plan is feasible, else MC-look, else infeasible",
+    "feasible-shift": "PCA-shift-mse if B >= 10 (a_s + 64 b_s) with the shift cost model and the plan is feasible, else MC-look, else infeasible. The rule constants 10 and 64 are reused with a different randomisation; this variant of the rule has NOT been validated and is exploratory."
+  },
+  "grid": {
+    "m": [24, 52, 104],
+    "moneyness_K_over_S0": [0.96, 1.04],
+    "sigma": [0.25, 0.45],
+    "T": 1.2,
+    "r": 0.01,
+    "S0": 100.0,
+    "note": "12 scenarios; none of these K/S0, sigma, T, r values occur in Phases 2-4 or in configs/phase5_frontier.json"
+  },
+  "budgets_seconds": [0.002, 0.005, 0.010, 0.020, 0.050],
+  "greeks": ["delta", "gamma", "vega"],
+  "replications": 30,
+  "seed": 20261215,
+  "cliff_sweep": {
+    "scenarios": "first scenario of each m",
+    "greek": "delta",
+    "budgets_seconds": "24 values geometrically spaced from 0.002 to 0.064",
+    "strategies": ["PCA-base", "PCA-opt-mse", "PCA-shift-mse", "MC-look"],
+    "replications": 30
+  },
+  "references": {"estimator": "CPW-first + PCA-RQMC (Owen)", "scrambles": 32, "points_per_scramble": "2^18 if m <= 24 else 2^16", "independent_check": "plain MC, 2^20 paths"},
+  "metrics": {
+    "overrun": "measured wall / budget, all work inside the call including planning; per (m, budget, strategy): median, p95, max, share > 1.10",
+    "deadline_miss": "share of runs with wall > 1.10 * budget",
+    "mse": "over replications against the reference, minus ref_se^2",
+    "wn_mse": "mse * mean measured wall",
+    "coverage": "share of replications whose 95% interval contains the reference",
+    "cost_prediction": "measured wall / predicted cost of the executed plan"
+  },
+  "hypotheses": {
+    "S1": "Look-ahead strategies never plan infeasible work, and in every (m, budget) cell at most 5% of their runs exceed 1.10 * budget. The baseline RQMC scheduler violates this at small budgets.",
+    "S2": "Pooled 95% interval coverage is at least 0.93 for the r_min = 8 strategies. Coverage of the 'ci' objective (R as low as 3) is reported without a threshold.",
+    "S3": "PCA-opt-mse has time-normalised MSE no worse than PCA-base (geometric-mean ratio <= 1) in cells where both ran. Two-sided 95% bootstrap interval reported.",
+    "S4": "Digital shifts make RQMC feasible at smaller budgets than Owen scrambling; whether they are more accurate per unit time is an open question, reported two-sided.",
+    "S5": "Along the fine budget sweep, the largest increase of MSE between adjacent budgets (the 'cliff') is smaller for PCA-opt-mse than for PCA-base."
+  },
+  "selection_for_later_phases": "Phases 5C and 5D will use one scheduling policy chosen from these results. Because that choice is made on this grid, Phases 5C/5D use different scenarios."
+}

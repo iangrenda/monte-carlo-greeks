@@ -1,0 +1,360 @@
+"""Phase 5B: budget-feasible sampling schedules for MC and RQMC.
+
+Problem with the Phase-3/4 scheduler (``asian_qmc.timed_estimate``): it always
+runs at least 4 scramblings of at least 16 points and stops only *after* the
+budget is spent, so (i) at small budgets it deliberately schedules work it could
+know in advance will not fit, and (ii) every run overshoots by up to one unit.
+
+Here a schedule is chosen from a calibrated cost model before anything runs:
+
+    cost_RQMC(R, N) = c0 + R (a + b N),        cost_MC(K, n_b) = c0' + K (u + c n_b),
+
+R scramblings of N points (N a power of two), or K blocks of n_b i.i.d. paths.
+With the working model Var = sigma^2 N^(-alpha) / R, the schedule solves
+
+    minimise   N^(-alpha) / R                  ("mse" objective, R >= r_min), or
+               t_{R-1, 0.975}^2 N^(-alpha) / R ("ci" objective: squared CI half-width)
+    subject to c0 + R (a + b N) <= (1 - margin) B,  N in {n_min, 2 n_min, ...}.
+
+The feasible set is tiny, so it is solved by enumeration. If nothing satisfies
+the constraint the plan is *infeasible* and nothing is run under that name: the
+caller falls back to MC or reports that the request cannot be met.
+
+While running, a unit is started only if the elapsed time plus the predicted
+cost of that unit is within the budget (look-ahead stopping). Two units are
+always completed, because a standard error needs two. All stopping decisions use
+the clock and the plan only, never the simulated values, so estimators remain
+unbiased. Wall-clock time cannot be guaranteed on a general-purpose OS;
+measured overruns are returned and must be reported.
+
+Randomisations (both give unbiased estimates and independent replicates):
+* "owen":  SciPy's scrambled Sobol' (a fresh scrambling per replicate). Its
+           set-up cost per replicate, a, is large (0.3-2 ms here).
+* "shift": a random digital shift of one cached unscrambled Sobol' point set:
+           u' = ((k XOR s) + v) / 2^30 with s uniform on {0..2^30-1}^d and
+           v ~ U(0,1)^d drawn once per replicate. Each point is exactly uniform
+           and the shifted set is still a digital net with the same t-value
+           (standard result; e.g. Dick & Pillichshammer 2010, ch. 4). It does not
+           give the extra variance-rate gain of Owen scrambling for smooth
+           integrands, but costs almost nothing per replicate.
+"""
+
+from __future__ import annotations
+
+import math
+import time
+from dataclasses import dataclass
+
+import numpy as np
+from scipy import special
+from scipy.stats import qmc
+
+from .asian import AsianDigital, cpw_first_samples
+from .asian_qmc import increments_from_residual
+from .joint_greeks import cpw_first_joint, pca_factor
+from .models import BlackScholesParams
+
+BITS = 30
+_EPS = np.finfo(float).eps
+RANDOMISATIONS = ("owen", "shift")
+_SOBOL_INT_CACHE: dict = {}
+
+
+def t975(df: int) -> float:
+    return float(special.stdtrit(df, 0.975))
+
+
+def make_evaluator(f: AsianDigital, p: BlackScholesParams, what: str):
+    """Z (N, m) -> (N, k) per-path values. what: 'joint' (Delta, Gamma, Vega) or one Greek name."""
+    if what == "joint":
+        return lambda Z: cpw_first_joint(f, p, Z)
+    return lambda Z: cpw_first_samples(f, p, Z, what)[:, None]
+
+
+# --- point sets -------------------------------------------------------------------------------
+
+def sobol_int_points(d: int, n: int, cache: dict | None = None) -> np.ndarray:
+    """First n unscrambled Sobol' points in dimension d as 30-bit integers (cached)."""
+    cache = _SOBOL_INT_CACHE if cache is None else cache
+    key = (d, n)
+    if key not in cache:
+        u = qmc.Sobol(d=d, scramble=False, bits=BITS).random(n)
+        cache[key] = np.rint(u * (1 << BITS)).astype(np.uint32)
+    return cache[key]
+
+
+def shifted_uniforms(ints: np.ndarray, rng: np.random.Generator) -> np.ndarray:
+    """One random digital shift of an integer point set; every point is U[0,1)^d."""
+    d = ints.shape[1]
+    s = rng.integers(0, 1 << BITS, size=d, dtype=np.uint32)
+    return ((ints ^ s) + rng.random(d)) * (2.0**-BITS)
+
+
+# --- results ----------------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class VectorEstimate:
+    value: np.ndarray         # (k,)
+    stderr: np.ndarray        # (k,)
+    cov: np.ndarray           # (k, k) estimated covariance of the estimator
+    ci_halfwidth: np.ndarray  # 95%: t_{R-1} for RQMC, z for MC
+    n_paths: int
+    n_units: int              # scramblings / shifts (RQMC) or blocks (MC)
+    n_per_unit: int
+    wall: float               # measured seconds, everything inside the call
+    method: str               # "MC", "RQMC-owen", "RQMC-shift" or "infeasible"
+    feasible: bool = True
+
+
+def infeasible_estimate(k: int, wall: float = 0.0) -> VectorEstimate:
+    nan = np.full(k, np.nan)
+    return VectorEstimate(nan, nan, np.full((k, k), np.nan), nan, 0, 0, 0, wall, "infeasible", False)
+
+
+# --- executors --------------------------------------------------------------------------------
+
+def run_rqmc(evalfn, L: np.ndarray, dt: float, n_points: int, budget: float, rng: np.random.Generator,
+             randomisation: str = "owen", min_units: int = 2, max_units: int | None = None,
+             lookahead_cost: float | None = None, t0: float | None = None, cache: dict | None = None) -> VectorEstimate:
+    """Replicated RQMC with construction matrix L.
+
+    A replicate is started while fewer than ``min_units`` are done, or while
+    (lookahead_cost is None and elapsed < budget)                [Phase-3/4 behaviour]
+    or (elapsed + lookahead_cost <= budget)                      [look-ahead stopping],
+    and fewer than ``max_units`` are done. t0 lets the caller include earlier work.
+    """
+    if n_points & (n_points - 1):
+        raise ValueError("n_points must be a power of two")
+    t0 = time.perf_counter() if t0 is None else t0
+    d = L.shape[0]
+    ints = sobol_int_points(d, n_points, cache) if randomisation == "shift" else None
+    rows = (1 << 18) // max(d, 1)
+    blk = max(64, min(n_points, 1 << (rows.bit_length() - 1)))
+    means = []
+    while True:
+        r = len(means)
+        if max_units is not None and r >= max_units:
+            break
+        if r >= min_units:
+            el = time.perf_counter() - t0
+            if (el >= budget) if lookahead_cost is None else (el + lookahead_cost > budget):
+                break
+        if randomisation == "owen":
+            sob = qmc.Sobol(d=d, scramble=True, seed=rng)
+            acc, cnt = 0.0, 0
+            while cnt < n_points:
+                k = min(blk, n_points - cnt)
+                xi = special.ndtri(np.clip(sob.random(k), _EPS, 1 - _EPS))
+                acc = acc + evalfn(increments_from_residual(xi @ L.T, dt)).sum(axis=0)
+                cnt += k
+        elif randomisation == "shift":
+            u = shifted_uniforms(ints, rng)
+            acc = 0.0
+            for i in range(0, n_points, blk):
+                xi = special.ndtri(np.clip(u[i:i + blk], _EPS, 1 - _EPS))
+                acc = acc + evalfn(increments_from_residual(xi @ L.T, dt)).sum(axis=0)
+        else:
+            raise ValueError(f"unknown randomisation {randomisation!r}")
+        means.append(acc / n_points)
+    v = np.asarray(means)
+    R, k = v.shape
+    cov = np.atleast_2d(np.cov(v, rowvar=False)) / R if R > 1 else np.full((k, k), np.nan)
+    se = np.sqrt(np.diag(cov))
+    q = t975(R - 1) if R > 1 else float("nan")
+    return VectorEstimate(v.mean(axis=0), se, cov, q * se, R * n_points, R, n_points, time.perf_counter() - t0,
+                          f"RQMC-{randomisation}")
+
+
+def run_mc(evalfn, m: int, block: int, budget: float, rng: np.random.Generator, min_units: int = 2,
+           max_units: int | None = None, lookahead_cost: float | None = None, t0: float | None = None) -> VectorEstimate:
+    """Plain MC in blocks of ``block`` paths, with the same stopping logic as ``run_rqmc``."""
+    t0 = time.perf_counter() if t0 is None else t0
+    n, units, s1, s2 = 0, 0, 0.0, 0.0
+    while True:
+        if max_units is not None and units >= max_units:
+            break
+        if units >= min_units:
+            el = time.perf_counter() - t0
+            if (el >= budget) if lookahead_cost is None else (el + lookahead_cost > budget):
+                break
+        y = evalfn(rng.standard_normal((block, m)))
+        s1 = s1 + y.sum(axis=0)
+        s2 = s2 + y.T @ y
+        n += block
+        units += 1
+    mean = s1 / n
+    cov = (s2 - n * np.outer(mean, mean)) / (n - 1) / n
+    se = np.sqrt(np.clip(np.diag(cov), 0.0, None))
+    return VectorEstimate(mean, se, cov, 1.96 * se, n, units, block, time.perf_counter() - t0, "MC")
+
+
+# --- cost model -------------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class CostModel:
+    """Seconds. RQMC: c0[rand] + R (a[rand] + b[rand] N). MC: mc0 + K (mc_u + mc_c n_b)."""
+    m: int
+    what: str
+    rq: dict           # randomisation -> (c0, a, b)
+    mc: tuple          # (mc0, mc_u, mc_c)
+    fit_error: dict    # randomisation / "mc" -> median |relative residual| of the fit
+
+    def rqmc_cost(self, R: int, N: int, randomisation: str = "owen") -> float:
+        c0, a, b = self.rq[randomisation]
+        return c0 + R * (a + b * N)
+
+    def rqmc_unit(self, N: int, randomisation: str = "owen") -> float:
+        _, a, b = self.rq[randomisation]
+        return a + b * N
+
+    def mc_cost(self, K: int, block: int) -> float:
+        mc0, u, c = self.mc
+        return mc0 + K * (u + c * block)
+
+    def mc_unit(self, block: int) -> float:
+        return self.mc[1] + self.mc[2] * block
+
+
+def _nnls_rel(X: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, float]:
+    """Least squares on relative errors (rows scaled by 1/y), coefficients clipped at >= 0."""
+    from scipy.optimize import nnls
+    coef, _ = nnls(X / y[:, None], np.ones_like(y))
+    return coef, float(np.median(np.abs(X @ coef - y) / y))
+
+
+def calibrate_cost_model(m: int, what: str = "delta", seed: int = 0, repeats: int = 7,
+                         sizes=(16, 64, 256, 1024, 4096), units=(2, 4, 8),
+                         randomisations=RANDOMISATIONS) -> CostModel:
+    """Fit the cost model from timings of the real executors (medians over ``repeats``).
+
+    The contract parameters do not affect the arithmetic, so a reference contract
+    is used. Relative least squares, because small schedules matter most for
+    feasibility and ordinary least squares would be dominated by the largest runs.
+    """
+    rng = np.random.default_rng(seed)
+    p = BlackScholesParams(100.0, 0.03, 0.2, 1.0)
+    f = AsianDigital(100.0, m)
+    ev = make_evaluator(f, p, what)
+    dt = p.T / m
+    L = pca_factor(m, dt)
+    rq, err = {}, {}
+    for rand in randomisations:
+        if rand == "shift":
+            for n in sizes:
+                sobol_int_points(m - 1, n)
+        X, y = [], []
+        for R in units:
+            for n in sizes:
+                ts = [run_rqmc(ev, L, dt, n, 0.0, rng, rand, min_units=R, max_units=R).wall for _ in range(repeats)]
+                X.append((1.0, R, R * n))
+                y.append(float(np.median(ts)))
+        coef, e = _nnls_rel(np.array(X), np.array(y))
+        rq[rand], err[rand] = tuple(float(c) for c in coef), e
+    X, y = [], []
+    for K in (2, 4, 8):
+        for n in (16, 64, 256, 1024, 4096):
+            ts = [run_mc(ev, m, n, 0.0, rng, min_units=K, max_units=K).wall for _ in range(repeats)]
+            X.append((1.0, K, K * n))
+            y.append(float(np.median(ts)))
+    coef, e = _nnls_rel(np.array(X), np.array(y))
+    err["mc"] = e
+    return CostModel(m, what, rq, tuple(float(c) for c in coef), err)
+
+
+# --- planning ---------------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class Plan:
+    method: str               # "RQMC" | "MC" | "infeasible"
+    randomisation: str | None
+    n_points: int             # points per replicate (RQMC) or paths per block (MC)
+    units: int                # planned replicates / blocks
+    predicted_cost: float
+    unit_cost: float          # predicted seconds of one more unit (the look-ahead)
+    feasible: bool
+    note: str = ""
+
+
+def _pow2_floor(x: float) -> int:
+    return 1 << (max(int(x), 1).bit_length() - 1)
+
+
+def optimise_schedule(budget: float, cm: CostModel, randomisation: str = "owen", alpha: float = 2.0,
+                      objective: str = "mse", r_min: int = 8, n_min: int = 16, n_max: int = 1 << 18,
+                      margin: float = 0.05) -> Plan:
+    """Solve the integer programme in the module docstring by enumeration.
+
+    For a given N the objective decreases in R, so R is the largest feasible
+    value. objective="ci" needs R >= 3 and trades N against the t-quantile.
+    """
+    c0, a, b = cm.rq[randomisation]
+    room = (1.0 - margin) * budget - c0
+    floor_r = r_min if objective == "mse" else max(3, min(r_min, 3))
+    best = None
+    N = n_min
+    while N <= n_max:
+        unit = a + b * N
+        R = int(room / unit) if room > 0 else 0
+        if R < floor_r:
+            break
+        obj = N ** (-alpha) / R * (t975(R - 1) ** 2 if objective == "ci" else 1.0)
+        if best is None or obj < best[0]:
+            best = (obj, R, N, unit)
+        N *= 2
+    if best is None:
+        return Plan("infeasible", randomisation, 0, 0, float("nan"), float("nan"), False,
+                    f"{floor_r} replicates of {n_min} points need {c0 + floor_r * (a + b * n_min):.2e}s > budget")
+    _, R, N, unit = best
+    return Plan("RQMC", randomisation, N, R, c0 + R * unit, unit, True, objective)
+
+
+def fixed_n_schedule(budget: float, cm: CostModel, n_points: int, randomisation: str = "owen", r_min: int = 8,
+                     margin: float = 0.05) -> Plan:
+    """Fixed points per replicate; the number of replicates takes up the budget."""
+    c0, a, b = cm.rq[randomisation]
+    unit = a + b * n_points
+    R = int(((1.0 - margin) * budget - c0) / unit)
+    if R < r_min:
+        return Plan("infeasible", randomisation, 0, 0, float("nan"), float("nan"), False,
+                    f"{r_min} replicates of {n_points} points do not fit")
+    return Plan("RQMC", randomisation, n_points, R, c0 + R * unit, unit, True, "fixed-n")
+
+
+def mc_schedule(budget: float, cm: CostModel, blocks_target: int = 8, block_min: int = 16, block_max: int = 1 << 12,
+                margin: float = 0.05) -> Plan:
+    """MC blocks sized so that about ``blocks_target`` fit; infeasible if two minimal blocks do not."""
+    mc0, u, c = cm.mc
+    room = (1.0 - margin) * budget - mc0
+    if room < 2 * (u + c * block_min):
+        return Plan("infeasible", None, 0, 0, float("nan"), float("nan"), False, "two minimal MC blocks do not fit")
+    nb = min(max(_pow2_floor((room / blocks_target - u) / c) if room / blocks_target > u else block_min, block_min), block_max)
+    unit = u + c * nb
+    K = max(int(room / unit), 2)
+    return Plan("MC", None, nb, K, mc0 + K * unit, unit, True, "mc")
+
+
+def frozen_rule_prefers_rqmc(budget: float, cm: CostModel, randomisation: str = "owen", n_scrambles: int = 10,
+                             n_min_points: int = 64) -> bool:
+    """The Phase-4 rule form, B >= 10 (a + 64 b), evaluated with this cost model's (a, b)."""
+    _, a, b = cm.rq[randomisation]
+    return budget >= n_scrambles * (a + n_min_points * b)
+
+
+def feasible_plan(budget: float, cm: CostModel, randomisation: str = "owen", alpha: float = 2.0,
+                  objective: str = "mse", r_min: int = 8, margin: float = 0.05, use_rule: bool = True) -> Plan:
+    """RQMC if the (frozen-form) rule prefers it and a schedule fits; else MC if that fits; else infeasible."""
+    if not use_rule or frozen_rule_prefers_rqmc(budget, cm, randomisation):
+        pl = optimise_schedule(budget, cm, randomisation, alpha, objective, r_min, margin=margin)
+        if pl.feasible:
+            return pl
+    return mc_schedule(budget, cm, margin=margin)
+
+
+def execute(plan: Plan, evalfn, k: int, L: np.ndarray | None, m: int, dt: float, budget: float,
+            rng: np.random.Generator, t0: float | None = None) -> VectorEstimate:
+    """Run a plan with look-ahead stopping. An infeasible plan runs nothing."""
+    if not plan.feasible:
+        return infeasible_estimate(k)
+    if plan.method == "MC":
+        return run_mc(evalfn, m, plan.n_points, budget, rng, lookahead_cost=plan.unit_cost, t0=t0)
+    return run_rqmc(evalfn, L, dt, plan.n_points, budget, rng, plan.randomisation, lookahead_cost=plan.unit_cost, t0=t0)
