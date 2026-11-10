@@ -17,6 +17,7 @@ Derivations are in [`PHASE6_MATHEMATICS.md`](PHASE6_MATHEMATICS.md).
 | **6A confirmed** | On 24 new contracts the digital shift again beats SciPy-scrambled Sobol' at equal measured time: 0.015–0.57× the time-normalised loss at budgets ≤ 20 ms. SciPy's version could not run at all in 6 of 15 (m, budget) cells. |
 | **6A cause** | Mostly SciPy's per-replicate engine construction. My own LMS+shift on cached direction numbers has the same variance (ratio 0.90–1.07) and recovers most of the gap. |
 | **6A refuted** | The theory-based expectation that scrambling beats a bare shift per point did not hold for these integrands: variance ratios went both ways (0.68–1.23) and all three randomisations converge at the same rate (variance ∝ N⁻²·⁰). The bare shift stays cheapest, and my LMS was 1.9× less efficient per unit time. |
+| **6A second machine** | On a GitHub Actions runner (AMD EPYC, Linux) the equal-N results reproduce to 10⁻¹⁰ and the timed ranking is the same. The shift's advantage over SciPy is larger there; the gap between own LMS and the shift is smaller (1.46×). |
 | **6B confirmed** | A deterministic rotation (second-order expansion at the design point, Greek weights integrated by quadrature) matches a rotation trained on 32,768 gradient paths: 0.98–1.07× its loss at fixed N. Training can be eliminated without loss of accuracy. |
 | **6B refuted** | It does not beat the practical 256-path training, which was already near-optimal on the holdout (0.94–1.01×), and it is not cheaper to build (1.2–3.2 ms against 0.3–3.3 ms). One-off under a wall-clock budget the two are indistinguishable in 9 of 12 cells. |
 | **6B confirmed** | The leading direction alone is not enough. A rotation that gets it right (|cos| ≥ 0.998) but keeps path-PCA order for the rest loses 1.46–1.76×. |
@@ -39,11 +40,11 @@ speed.
 | machine | the same Windows laptop as Phases 4–5 (16 logical CPUs), Python 3.12.10, NumPy 2.4.3, SciPy 1.16.2 |
 | tests | 349 pass (24 new) |
 
-**Second environment: not yet run.** The workflow
-`.github/workflows/phase6-portable.yml` runs a reduced 6A study on a GitHub
-Ubuntu runner and uploads the results. It needs the branch on GitHub and a
-manual trigger. Until then, every timed number below comes from one machine.
-The equal-N results do not depend on hardware.
+**Second environment: run (§2.4).** The workflow
+`.github/workflows/phase6-portable.yml` ran a reduced 6A study (6 contracts)
+on a GitHub Actions runner: Linux, 4 vCPUs of an AMD EPYC 9V74, Python
+3.12.16, the same pinned library versions. 6B's timed results come from the
+laptop only.
 
 ## 2. Phase 6A: the digital shift on a holdout
 
@@ -125,7 +126,46 @@ budgets 2–50 ms. Time-normalised loss ratios, [95% CI]:
     is 10%. Phase 5B's "at most 4.4%" does not carry over to 2 ms budgets on
     this grid.
 
-### 2.3 What 6A establishes
+### 2.3 Second environment (A6)
+
+Commands: the workflow above, then
+`python scripts/phase6_compare_envs.py results/phase6_shift/portable-gha-ubuntu`.
+The runner's results are in `results/phase6_shift/portable-gha-ubuntu/`
+(machine description in `machine.txt`). The laptop's holdout, restricted to
+the same 6 contracts and first 50 replicates, is in
+`results/phase6_shift/holdout-portable-subset/`.
+
+* **Equal N reproduces exactly up to rounding.** All 4,500 replicate means
+  agree to 9·10⁻¹¹ relative and the references to 2·10⁻¹¹. They are not
+  bit-identical, because the two CPUs round floating-point arithmetic
+  differently. The derived variance ratios agree to 13 digits.
+* **Timed ranking reproduces.** 55 of 61 (m, budget, pair) ratios point the
+  same way on both machines, and none is significant in opposite
+  directions. The 6 that differ are own LMS / shift (5) and own LMS / SciPy
+  at m = 16, 50 ms (1). On the runner the LMS-vs-shift intervals all contain
+  1; on the laptop 4 of those 5 favoured the shift significantly.
+* **The magnitudes depend on the machine.**
+
+  | | laptop (6-contract subset) | GitHub runner |
+  |---|---|---|
+  | own LMS / shift, geometric mean over cells | 2.04 | 1.46 |
+  | shift / SciPy LMS where SciPy feasible | 0.014 – 0.84 | 0.027 – 0.51 |
+  | (m, budget) cells where SciPy LMS cannot run | 6 of 15 | 9 of 15 |
+  | SciPy set-up per replicate a, m = 16 / 40 / 80 | 0.33 / 0.93 / 1.83 ms | 0.68 / 1.64 / 3.20 ms |
+  | shift cost per point b, m = 16 / 40 / 80 | 0.64 / 1.75 / 4.43 µs | 0.47 / 1.27 / 2.49 µs |
+  | max share of late runs in a contract cell | 10% | 5% |
+
+  The runner simulates faster per point but builds SciPy engines about 2×
+  more slowly, so the shift's advantage over SciPy is *larger* there. The
+  gap between own LMS and the shift is smaller (1.46×), but in the same
+  direction.
+* **A6: supported.** Same equal-N numbers, same ranking, no significant
+  contradiction. On this smaller sample the A1 ratio spreads over
+  0.77–1.46 (2 of 15 intervals exclude 1) *identically on both machines*.
+  That is sampling noise in the subset, not a machine effect; the full
+  holdout gave 0.90–1.07 with no interval excluding 1.
+
+### 2.4 What 6A establishes
 
 The Phase-5 recommendation (shift, not SciPy scrambling) holds on new
 contracts. The reason is now known: SciPy rebuilds a scrambled engine per
@@ -265,7 +305,7 @@ answer for this contract family.
 | A3 | shift beats SciPy LMS per unit time ≤ 20 ms | **pass** |
 | A4 | own LMS at least as efficient as the shift | **refuted** (1.9× worse) |
 | A5 | coverage ≥ 0.93; ≤ 5% late runs per cell | coverage pass; **deadline fail** at 2 ms (max 14%) |
-| A6 | second environment reproduces | **not run** |
+| A6 | second environment reproduces | **pass** (equal N to 10⁻¹⁰; same timed ranking, no significant contradiction; magnitudes machine-dependent) |
 | B1 | deterministic ≈ oracle-trained (≤ 1.10) | **pass** |
 | B2 | deterministic beats 256-path training | **not supported** (indistinguishable) |
 | B3 | deterministic ≤ trained one-off in every cell | **fail** (indistinguishable in 9/12; worse 1, better 2) |
@@ -273,8 +313,10 @@ answer for this contract family.
 
 ## 5. Limitations
 
-* **One machine** for all timings (A6 not run). The equal-N and fixed-N
-  results are machine-independent.
+* **Two machines for 6A, one for 6B.** The second 6A machine is a virtual
+  machine with 4 vCPUs and one 6-contract configuration. The 6B timed
+  results are from the laptop only. Equal-N and fixed-N results reproduce
+  across machines.
 * **One contract family** (CPW-first Asian digitals under GBM). The
   deterministic rotation uses this payoff's structure (one scalar δ) and
   does not transfer as written to the basket or to other payoffs.
@@ -293,6 +335,10 @@ answer for this contract family.
 
 ```bash
 python scripts/phase6_shift_study.py
+```
+
+```bash
+python scripts/phase6_compare_envs.py results/phase6_shift/portable-gha-ubuntu
 ```
 
 ```bash

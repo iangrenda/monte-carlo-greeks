@@ -261,8 +261,10 @@ Protocols frozen in `959db40` before the holdout runs; 24 new contracts
   gradient paths (0.98–1.07× its loss). It is not better or cheaper than
   256-path training, which was already near-optimal. Getting only the
   leading direction right costs 1.5–1.8×.
-* **Not yet done:** the second-environment run
-  (`.github/workflows/phase6-portable.yml`, manual trigger).
+* **Second machine** (GitHub Actions, AMD EPYC, Linux): equal-N results
+  reproduce to 10⁻¹⁰; the timed ranking is the same with no significant
+  contradiction. The shift's advantage over SciPy is larger there; the gap
+  between own LMS and the shift is smaller (1.46× vs about 2×).
 
 ```bash
 python scripts/phase6_shift_study.py
