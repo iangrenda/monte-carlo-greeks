@@ -181,6 +181,61 @@ The two runs take about 43 and 16 minutes. Results go to
 
 ---
 
+## Phase 5: budget-feasible joint Greek estimation
+
+📝 **[Report](docs/PHASE5_REPORT.md)** · 🧮 [Mathematics](docs/PHASE5_MATHEMATICS.md) · 🎯 [Cost frontier](docs/PHASE5_COST_FRONTIER.md) · ⏱️ [Sampling policy](docs/PHASE5_SAMPLING_POLICY.md) · 🔗 [Joint Greeks and reuse](docs/PHASE5_JOINT_GREEKS.md) · 🧺 [Basket generalisation](docs/PHASE5_GENERALISATION.md)
+
+Every protocol was frozen in a config file and committed before its run.
+
+* **The Phase-4 rule is fragile near the frontier** (`8b05116`). On a dense
+  budget grid and 24 new contracts, 6 of 72 cells are materially wrong: the
+  rule switches to RQMC up to 1.65× too early at m ≥ 52, costing up to 2.8×
+  in RMSE. Its threshold also moves 7–14% between calibrations. The rule was
+  not changed.
+* **Feasible schedules.** Planning (R, N) from a cost model and stopping by
+  look-ahead keeps at most 4.4% of runs late in any cell (old scheduler:
+  100% late at 2 ms, overruns up to 7.3×), with 95% coverage intact. It is
+  not more accurate with the same randomisation (ratio 1.06 [0.99, 1.15]).
+* **Random digital shifts** instead of per-replicate Owen scrambling cut
+  time-normalised MSE to 0.09× and make PCA-RQMC beat MC in all 15 cells
+  tested, down to 2 ms. The MC/RQMC crossover of Phases 3–5A is largely a
+  set-up-cost artefact of the scrambler.
+* **Joint Greeks.** Delta, Gamma and Vega from one shared simulation beat
+  three separate ones at equal total time (≈ 3× for MC, 5–16× for path PCA).
+  One joint gradient-PCA rotation serves all three under every weighting.
+* **Reuse.** With shared paths, shifts and 256 training paths, training pays
+  for itself within **one** valuation in every cell tested. A rotation
+  trained on one contract works unchanged on 34 neighbouring contracts.
+* **Generalisation.** On a two-asset basket Asian digital the joint rotation
+  still gains 2.5–5.6× over path PCA (fixed N only); Vega's gradient
+  structure is no longer rank one.
+
+```bash
+python scripts/phase5_frontier_study.py
+```
+
+```bash
+python scripts/phase5_frontier_study.py --config contended
+```
+
+```bash
+python scripts/phase5_policy_study.py
+```
+
+```bash
+python scripts/phase5_joint_study.py
+```
+
+```bash
+python scripts/phase5_basket_study.py
+```
+
+The runs take about 39, 23, 22, 22 and 2 minutes. Add `--quick` for a
+pipeline check (not evidence) or `--analysis-only` to rebuild tables and
+figures from saved runs. Results go to `results/phase5_*/`.
+
+---
+
 ## Key findings
 
 All results come from 200 independent replications per setting.
@@ -328,7 +383,7 @@ print(est.value, "+/-", est.stderr, " exact:", analytical.greek(PAPER_PAYOFF, PA
 pytest
 ```
 
-271 tests cover:
+325 tests cover:
 
 * closed forms against high-order numerical derivatives;
 * the Malliavin and pathwise weights against quadrature, to 10⁻⁷, with no
@@ -340,6 +395,11 @@ pytest
 * the finite-difference bias orders and the O(1/h) CRN variance law;
 * seed reproducibility, input validation, and pathwise estimators refused
   where invalid.
+* phase 5: joint and single-Greek estimates agreeing on the same points;
+  digital shifts being uniform, unbiased and net-preserving; schedules
+  matching brute-force optima and never exceeding the budget in prediction;
+  basket Greeks matching per-path finite differences and the exact
+  Black–Scholes limit.
 
 ## Repository structure
 
@@ -359,6 +419,9 @@ src/mc_greeks/
   asian_experiments.py phase-2 study: cost calibration, references, fixed runs, adaptive selectors
   asian_qmc.py         phase 3: sequential/bridge/PCA constructions, wall-clock-budgeted RQMC, timed selectors
   greek_aware_qmc.py   phase 4: analytic CPW-first gradients, gradient-PCA and joint transforms
+  budget_policy.py     phase 5: cost-model schedules, look-ahead stopping, digital shifts, infeasibility
+  joint_greeks.py      phase 5: shared-path Delta/Gamma/Vega, reusable rotations, risk-vector loss
+  basket.py            phase 5: two-asset basket Asian digital, conditional smoothing, implicit Greeks
   visualization.py     figures
   config.py            quick / research configurations, seeds, paper table
 scripts/               one script per experiment + full_experiment.py + figures.py

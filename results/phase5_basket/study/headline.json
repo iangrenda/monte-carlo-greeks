@@ -1,0 +1,50 @@
+{
+  "E1_min_top_share": 0.5575378487455173,
+  "E1_median_top_share_by_greek": {
+    "delta1": 0.9914,
+    "delta2": 0.9958,
+    "gamma11": 0.9912,
+    "gamma22": 0.9954,
+    "vega1": 0.7402,
+    "vega2": 0.7971
+  },
+  "E1_median_top2_share_by_greek": {
+    "delta1": 0.999,
+    "delta2": 0.9989,
+    "gamma11": 0.999,
+    "gamma22": 0.999,
+    "vega1": 0.9983,
+    "vega2": 0.9943
+  },
+  "E2_min_cos_same_asset": 0.923015997258051,
+  "E2_min_cos_cross_asset": 0.8742373673814994,
+  "E2_median_cos_cross_asset_by_rho": {
+    "0.0": 0.9836,
+    "0.5": 0.982,
+    "0.9": 0.9983
+  },
+  "E3_gm_joint6_over_specific_range": [
+    0.6740421214346702,
+    1.4813574143710408
+  ],
+  "E3_gm_joint6_loss_ratio_vs_pca": {
+    "m12_rho0.0_N2^10": 0.3966,
+    "m12_rho0.0_N2^12": 0.4014,
+    "m12_rho0.5_N2^10": 0.2486,
+    "m12_rho0.5_N2^12": 0.2566,
+    "m12_rho0.9_N2^10": 0.3686,
+    "m12_rho0.9_N2^12": 0.4016,
+    "m26_rho0.0_N2^10": 0.2652,
+    "m26_rho0.0_N2^12": 0.2196,
+    "m26_rho0.5_N2^10": 0.164,
+    "m26_rho0.5_N2^12": 0.1773,
+    "m26_rho0.9_N2^10": 0.1963,
+    "m26_rho0.9_N2^12": 0.2259
+  },
+  "E4_gm_specific_over_pca_range": [
+    0.06873405934495859,
+    0.7978975061339132
+  ],
+  "max_abs_z_vs_plain_mc": 2.9993147239268176,
+  "max_abs_z_price_raw_vs_smoothed": 0.6631981739627169
+}
