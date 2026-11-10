@@ -187,7 +187,8 @@ def analyse(out):
     raw["ref_se"] = [refs.at[s, f"ref_se_{g}"] for s, g in zip(raw.sid, raw.greek)]
     raw["err"] = raw.value - raw.truth
     raw["over"] = raw.wall / raw.budget
-    raw["covered"] = (raw.err.abs() <= raw.ci).where(raw.feasible)
+    raw["feasible"] = raw.feasible.astype(bool)
+    raw["covered"] = np.where(raw.feasible, (raw.err.abs() <= raw.ci).astype(float), np.nan)
     raw["pred_ratio"] = raw.wall / raw.pred_cost
     main, sweep = raw[raw.part == "main"], raw[raw.part == "sweep"]
 
