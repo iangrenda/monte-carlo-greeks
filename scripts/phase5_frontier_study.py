@@ -373,7 +373,8 @@ def figures(out, boot_lr, cells, cross, recal, cal, ov):
     for k, g in enumerate(GREEKS):
         d = cross[cross.greek == g]
         axes[0].errorbar(np.log2(d.m) + 0.06 * (k - 1), d.crossover_s * 1e3,
-XX, capsize=3, color=col[g],
+                         yerr=np.nan_to_num(np.clip([(d.crossover_s - d.ci_lo) * 1e3, (d.ci_hi - d.crossover_s) * 1e3], 0, None)),
+                         fmt="o", capsize=3, color=col[g],
                          label=f"{g}: empirical crossover (95% CI)")
     t = recal.groupby("m").rule_threshold_s.agg(["min", "max"])
     axes[0].errorbar(np.log2(t.index), cal.loc[t.index, "rule_threshold_s"] * 1e3,
