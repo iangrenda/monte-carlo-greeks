@@ -1,0 +1,45 @@
+{
+  "_purpose": "Phase 7B. Frozen protocol: do the Phase 4-6 efficiency results for CPW-first Greeks survive deterministic volatility term structures, and must the path construction know the curve? Fixed N, reference-free (every estimator is unbiased; MSE = variance over independent scramblings). Committed before the study is run.",
+  "frozen_on": "2026-11-11",
+  "module": "src/mc_greeks/term_structure.py",
+  "grid": {
+    "m": [12, 52],
+    "moneyness_K_over_S0": [0.95, 1.05],
+    "sigma_bar": [0.2, 0.4],
+    "shapes": {
+      "flat": "sigma_j = sigma_bar",
+      "rising": "linear from 0.6 sigma_bar to 1.4 sigma_bar over the m intervals",
+      "falling": "linear from 1.4 sigma_bar to 0.6 sigma_bar",
+      "event": "sigma_bar everywhere except interval floor(0.6 m) at 3 sigma_bar (earnings-type event)",
+      "reverting": "sigma_j = sigma_bar + sigma_bar exp(-3 t_j / T): a post-shock forecast starting near 2 sigma_bar and decaying to sigma_bar"
+    },
+    "T": 1.0,
+    "r": 0.025,
+    "S0": 100.0,
+    "note": "40 scenarios (5 shapes x 2 sigma_bar x 2 m x 2 K)"
+  },
+  "seed": 20270501,
+  "estimator": "CPW-first with a volatility curve (Delta, Gamma, parallel Vega, and the m bucket vegas), all from the same points",
+  "arms": {
+    "seq": "sequential (cumulative sum)",
+    "bb": "Brownian bridge on the variance clock",
+    "naive": "constant-volatility PCA of the increments, then scaled by a_j (exact in law, ignores the curve)",
+    "pca": "PCA of the residual covariance (curve-aware); the baseline of all ratios",
+    "gpca-trained": "joint gradient-PCA rotation from 4096 gradient paths (central differences in xi), near-oracle",
+    "gpca-free": "training-free weighted rotation at the design point (Phase 6B construction on the variance clock)"
+  },
+  "randomisation": "SciPy LMS+shift, 32 independent scramblings per (scenario, arm, N)",
+  "log2n": [10, 12],
+  "losses": {
+    "joint": "mean over (Delta, Gamma, parallel Vega) of Var_g / s_g^2",
+    "bucket": "mean over the m bucket vegas of Var_k / s_k^2",
+    "scales": "s = per-path standard deviation of the plain-MC CPW-first estimator, 2^16 independent paths per scenario"
+  },
+  "statistics": "ratios to 'pca' per scenario; geometric mean over the 4 scenarios of each (m, shape); 95% percentile bootstrap (2000) resampling scramblings within each arm",
+  "hypotheses": {
+    "T1": "Ignoring the curve costs efficiency when the curve is not flat: naive / pca joint loss = 1 for flat (identical constructions) and > 1 with the CI above 1 for the 'event' shape at both m. Other shapes reported without a threshold.",
+    "T2": "Greek-aware rotations keep their gain: gpca-trained / pca and gpca-free / pca joint loss <= 0.5 (geometric mean) in every (m, shape) cell.",
+    "T3": "Training stays unnecessary: gpca-free / gpca-trained joint loss <= 1.25 (geometric mean) in every (m, shape) cell.",
+    "T4": "The joint (Delta, Gamma, Vega) rotation also helps the bucket-vega vector, but less: gpca-trained / pca bucket loss < 1 in every (m, shape) cell, and larger than the corresponding joint-loss ratio. Reported, no threshold on the size."
+  }
+}
