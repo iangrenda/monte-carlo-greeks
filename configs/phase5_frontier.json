@@ -1,0 +1,65 @@
+{
+  "_purpose": "Phase 5A. Frozen protocol for a dense-grid stress test of the Phase-4 cost-model rule near the MC / PCA-RQMC crossover. Committed before the study script is run. The rule under test is the unmodified rule of configs/phase4_cost_rule.json. Do not edit after results exist.",
+  "frozen_on": "2026-11-09",
+  "frozen_at_parent_commit": "c4e5fda6f5d231f2b45892fc3d8b9e16fbe3c5b4",
+  "rule_under_test": {
+    "source": "configs/phase4_cost_rule.json (unchanged)",
+    "decision": "use RQMC-pca if budget_seconds >= 10 * (a_m + 64 * b_m), else MC",
+    "n_scrambles": 10,
+    "n_min_points": 64,
+    "cost_model": "pooled least squares t(n) = a_m + b_m n, mc_greeks.asian_qmc.calibrate_rqmc(pooled=True), measured at the start of each run on the evaluation machine",
+    "calibration_seed_offset": 7
+  },
+  "samplers": ["MC", "RQMC-pca"],
+  "scheduler": "unchanged Phase-3/4 scheduler (asian_qmc.timed_estimate with pps_for: largest power of two with 10 scramblings fitting, at least 4 units, stop when the budget is spent). The new Phase-5B schedulers are NOT used here.",
+  "grid": {
+    "moneyness_K_over_S0": [0.95, 1.05],
+    "sigma": [0.22, 0.40],
+    "T": [0.5, 1.5],
+    "r": 0.02,
+    "S0": 100.0,
+    "budgets_ms_by_m": {
+      "24": [6, 7, 8, 9, 10, 11, 12],
+      "52": [10, 12, 14, 16, 18, 20, 24, 30],
+      "104": [24, 28, 32, 36, 40, 46, 52, 60, 70]
+    },
+    "note": "8 scenarios per m. None of these K/S0, sigma, T or r values occur in the Phase 2, 3 or 4 Asian grids. The budget ranges were chosen from the Phase-4 thresholds and crossovers (m=24: 7.7 / 7.3 ms; m=52: 12.5 / 15.9 ms; m=104: 26.3 / 38.6 ms) so that they bracket the region the Phase-4 grid skipped."
+  },
+  "greeks": ["delta", "gamma", "vega"],
+  "seed": 20261201,
+  "configurations": {
+    "quiet": {"replications": 50, "background_load_processes": 0, "role": "primary"},
+    "contended": {"replications": 20, "background_load_processes": 8, "role": "secondary: same machine with 8 busy background processes (16 logical CPUs); the cost model is re-calibrated under the load, as the rule specifies"}
+  },
+  "execution_order": "for each budget, scenario, Greek and replication the two samplers are run back to back (MC then RQMC-pca), so slow drift in machine speed affects both alike",
+  "references": {"estimator": "CPW-first + PCA-RQMC", "scrambles": 32, "points_per_scramble": "2^18 if m <= 24 else 2^16", "independent_check": "CPW-first plain MC, 2^20 paths, z-scores"},
+  "calibration_noise": {
+    "repeats": 25,
+    "method": "25 further independent pooled calibrations before the timed runs and 5 after them; report the distribution of the rule threshold per m, how many of the grid decisions each recalibration would flip, and the regret each recalibrated threshold would have had on the measured data"
+  },
+  "metrics": {
+    "wn_mse": "(MSE - ref_se^2) * mean measured wall time, per (scenario, budget, Greek, sampler); MSE over replications against the reference",
+    "pooled_log_ratio": "LR(m, budget, Greek) = mean over the 8 scenarios of log(wn_MC / wn_PCA); positive means PCA-RQMC is better",
+    "uncertainty": "95% percentile bootstrap, 2000 resamples, resampling replications independently within every (scenario, sampler)",
+    "decision_loss": "rho = exp(0.5 * LR) if the rule chose MC, exp(-0.5 * LR) if it chose RQMC-pca. rho is the RMSE-scale factor lost relative to the alternative (rho < 1: the rule's choice was the better one). No per-cell oracle is used, so there is no winner's-curse bias.",
+    "equal_runtime_mse": "per (scenario, Greek, sampler) interpolate log(MSE - ref_se^2) linearly in log(mean measured wall) across the budget grid; compare the two samplers at equal measured wall time on the overlap of their time ranges",
+    "crossover": "per (m, Greek): budget where the pooled LR crosses 0 (first sign change, linear in log budget), with a bootstrap CI",
+    "overrun": "distribution of measured wall / budget per (m, budget, sampler); share of runs above 1.10"
+  },
+  "decision_classes": {
+    "correct": "rho bootstrap CI upper bound < 1",
+    "wrong_material": "rho bootstrap CI lower bound > 1.10",
+    "wrong_negligible": "rho CI lower bound > 1 but not > 1.10",
+    "indistinguishable": "otherwise (CI contains 1)"
+  },
+  "hypotheses": {
+    "H5A1": "Between the rule threshold and the empirical crossover the rule picks RQMC-pca while MC is the better sampler (it is early at m >= 52, as Phase 4 suggested).",
+    "H5A2": "Those wrong decisions are practically negligible: rho <= 1.10."
+  },
+  "criteria": {
+    "D1": "in the primary configuration no (m, budget, Greek) cell is classed wrong_material",
+    "D2": "in the primary configuration the geometric mean of rho over budgets is <= 1.05 for every (m, Greek)",
+    "D3": "share of (m, budget, Greek) cells classed wrong (material or negligible) is reported; no pass threshold",
+    "verdict": "ROBUST if D1 and D2 hold; otherwise FRAGILE NEAR THE FRONTIER. Either verdict is a finding about the frozen rule. The rule is not changed in this phase; a revised rule would need separate development data and a fresh holdout."
+  }
+}
