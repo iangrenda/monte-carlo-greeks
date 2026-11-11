@@ -1,0 +1,26 @@
+{
+  "python": "3.12.10",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "torch": "2.15.0+cpu",
+  "chronos": "2.3.2",
+  "numpy": "2.5.4",
+  "pandas": "3.1.1",
+  "git_commit": "b53bed93e7aaba0cf5197b3ba0c664db20826e38",
+  "config_last_commit": "b53bed93e7aaba0cf5197b3ba0c664db20826e38",
+  "data_sha256": {
+    "SP500.csv": "70e8bb2a2c0001643681d4d2820247c25be0c97a4615eb7ba34f390419e46be4",
+    "VIXCLS.csv": "2724110ef2d9e5f4c7c64ca1539c50e1a503300aad5946d45b0c733255b32fa9"
+  },
+  "first_date": "2016-11-14",
+  "last_date": "2026-11-09",
+  "quick": false,
+  "chronos_seconds_h5": [
+    45.23611470000469,
+    86.4557917000202
+  ],
+  "chronos_seconds_h21": [
+    44.82765570000629,
+    82.78699360002065
+  ],
+  "wall_seconds_total": 269.85823249816895
+}

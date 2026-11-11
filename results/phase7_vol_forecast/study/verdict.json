@@ -1,0 +1,54 @@
+{
+  "F1": {
+    "h5": [
+      0.4843,
+      0.9192,
+      0.0
+    ],
+    "h21": [
+      0.5303,
+      0.6214,
+      0.1512
+    ]
+  },
+  "F1_pass": false,
+  "F2": {
+    "h5": {
+      "best_classical": "garch",
+      "chronos_over_best": 1.0886,
+      "dm_p": 0.0027
+    },
+    "h21": {
+      "best_classical": "garch",
+      "chronos_over_best": 1.0576,
+      "dm_p": 0.6975
+    }
+  },
+  "F2_pass": false,
+  "F3": {
+    "h21": [
+      0.5015,
+      0.5303,
+      0.4881
+    ]
+  },
+  "F3_pass": false,
+  "F4": {
+    "h5": 0.7294,
+    "h21": 0.7497
+  },
+  "F4_pass": false,
+  "F5": {
+    "h5": {
+      "full_sign": 1.0,
+      "post_sign": 1.0,
+      "post_n": 251
+    },
+    "h21": {
+      "full_sign": 1.0,
+      "post_sign": 1.0,
+      "post_n": 235
+    }
+  },
+  "F5_pass": true
+}

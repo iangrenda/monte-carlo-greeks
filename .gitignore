@@ -11,3 +11,4 @@ results/experiment_data/*_raw.csv
 
 # raw third-party data (licensed; fetched by the scripts)
 data/
+results/phase7_vol_forecast/*/forecasts.csv.gz
