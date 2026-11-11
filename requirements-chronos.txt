@@ -1,0 +1,23 @@
+# Separate environment for the Phase 7 Chronos-2 scripts (scripts/phase7_chronos_smoke.py,
+# scripts/phase7_vol_forecast_study.py, the 'forecast' stage of scripts/phase7_forecast_greeks_study.py).
+# Kept apart from requirements.txt so the research environment never needs PyTorch.
+# Versions used for the Phase 7 results (Python 3.12.10, Windows 11, CPU only):
+#
+#   python -m venv ~/.venvs/chronos
+#   ~/.venvs/chronos/Scripts/python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.15.0
+#   ~/.venvs/chronos/Scripts/python -m pip install -r requirements-chronos.txt
+#
+# (On Linux/macOS use ~/.venvs/chronos/bin/python.) The first run downloads amazon/chronos-2
+# (about 480 MB) from Hugging Face; later runs can set HF_HUB_OFFLINE=1 to use the cache.
+# torch itself is installed by the first command above (CPU wheel index), so it is not repeated here.
+chronos-forecasting==2.3.2
+transformers==5.22.2
+accelerate==1.15.0
+huggingface_hub==2.4.0
+safetensors==0.8.0
+einops==0.8.2
+numpy==2.5.4
+pandas==3.1.1
+pyarrow==26.0.1
+scipy==1.18.1
+matplotlib==3.11.2
