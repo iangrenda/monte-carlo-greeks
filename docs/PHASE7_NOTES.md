@@ -225,13 +225,95 @@ variance, Chronos-2 against each model):
 * Forecasting log-volatility (which fixes the negative quantiles) was not pre-registered. It
   would need its own holdout.
 
+## 3c. From forecast uncertainty to Greek uncertainty (7E)
+
+**Question.** If the volatility curve over the next 60 trading days comes from Chronos-2, how
+uncertain are an Asian digital's model value and Greeks? And is that uncertainty band
+accurate and calibrated? This is physical-measure scenario analysis: values under forecast
+volatility, not option prices.
+
+**Design** (`configs/phase7_forecast_greeks.json`, frozen in `0048268` before any curve was
+propagated).
+* Contract: 12 monitoring dates, one every 5 trading days (T = 60/252), strikes at S₀ and
+  1.05 S₀.
+* Chronos-2 forecasts the **log** 5-day realised volatility (so curves stay positive) 60 days
+  ahead, every 5th trading day (399 forecasts, 27 s). The step-5j quantiles give each 5-day
+  block's forecast distribution.
+* Chronos-2 does not say how blocks move *together*, so curves were sampled under three
+  dependence assumptions:
+  * **comonotone** (all blocks at the same quantile);
+  * **independent**;
+  * an **empirical Gaussian copula** whose correlation is estimated only from forecast errors
+    already observed at the time (at least 52 needed, so 78 of 92 dates).
+* Each of 200 curves per assumption was repriced with the CPW-first estimators (8 × 4,096
+  scrambled points). Every curve at a date reuses the same random numbers: the "naive"
+  construction makes the normals curve-independent (tested). Simulation error is
+  0.01–0.04% of the band width.
+* Each band is checked against the value under the volatility path that actually happened.
+* Run: `HF_HUB_OFFLINE=1 ~/.venvs/chronos/Scripts/python scripts/phase7_forecast_greeks_study.py forecast`,
+  then `~/.venvs/mc-greeks/Scripts/python scripts/phase7_forecast_greeks_study.py propagate`
+  (8 min with 8 processes). Results in `results/phase7_forecast_greeks/study/`.
+
+**Results** (92 monthly dates, 2019-01 to 2026-08).
+
+| | at the money | 5% out of the money |
+|---|---|---|
+| 90% band width / value: comonotone, empirical, independent | 21%, 10%, 7% | 239%, 153%, 97% |
+| 90% band width / Delta: comonotone, empirical, independent | 215%, 110%, 74% | 114%, 56%, 32% |
+| coverage of the realised-curve value: comonotone, empirical, independent | 92%, 89%, 58% | 92%, 89%, 60% |
+| first-order band within ±25% of resampled: comonotone, empirical, independent | 64%, 78%, 82% | 25%, 60%, 75% |
+
+1. **The dependence assumption dominates the band.** The comonotone band is 3.5× (at the
+   money) and 2.0× (out of the money) the independent one (median sd ratio). Chronos-2
+   provides none of this information, so it has to be modelled.
+2. **Assuming independence is badly overconfident.** Its 90% band covered the realised-curve
+   value only 58–60% of the time. The empirical copula, estimated from past forecast errors
+   only, covered 89%, close to the nominal 90%. Comonotone covered 92%.
+3. **Volatility uncertainty matters far more for Delta than for the price at the money.**
+   The empirical-copula band is ±5% of the price but about ±55% of Delta. The Delta of an
+   Asian digital scales roughly like 1/σ.
+4. **The first-order (bucket-vega) approximation is not reliable enough.**
+   * It is within ±25% of the resampled width for 78–82% of dates at the money (independent
+     or empirical copula).
+   * Out of the money it is within ±25% for only 25–75% of dates, and for 45% under the
+     empirical copula in high-volatility periods.
+   * It overstates the comonotone out-of-the-money band by a median factor of 1.45.
+   * Out-of-the-money digitals are strongly nonlinear in volatility. Full repricing (cheap
+     here) is needed.
+5. **Curve shape versus level.**
+   * The Chronos-2 median curve versus a flat curve with the same total variance changes the
+     at-the-money price by only 0.3% (median), but Delta by 3.7%. Out of the money, the price
+     changes by 7.2% (90th percentile 18%) and Delta by 1.8%.
+   * The *level* matters more. The Chronos-2 median volatility is about equal to realised
+     (median ratio 0.99), while GARCH's flat forecast is 1.35× realised. GARCH forecasts mean
+     variance, which right-skew inflates.
+   * The median Delta difference between the two at the money is 33%. This also explains
+     §3b: QLIKE penalises under-forecasts more, so the higher GARCH forecast scores better on
+     it.
+
+**Hypotheses (pre-registered).**
+
+| | hypothesis | outcome |
+|---|---|---|
+| E1 | first-order band within ±25% of resampled for ≥ 80% of dates, every copula and strike | **fails** (passes only at the money with independent blocks, 82%) |
+| E2 | comonotone / independent sd ≥ 2 | **passes** (3.5 and 2.0) |
+| E3 | empirical-copula 90% band covers 80–97% | **passes** (89% for both strikes) |
+| E4 | descriptive: median curve vs flat, and vs GARCH | reported above |
+
+**Caveats.**
+* The realised curve is measured from daily returns, which are noisy, so coverage mixes
+  forecast error with measurement noise.
+* The empirical copula's correlation uses overlapping past forecasts.
+* One index, monthly dates (92, of which 78 have the empirical copula).
+* Physical measure only: these are not prices.
+
 ## 4. Next steps (not started)
 
 * **7D follow-up.** Chronos-2 on log-volatility, and fine-tuned on a training window, each
   pre-registered and tested on a later holdout.
-* **7E, forecast uncertainty → Greek uncertainty.** Chronos-2's quantiles give a per-horizon
-  spread of σ(t). Through the bucket vegas this becomes an uncertainty band on Asian-digital
-  prices and Greeks, to compare with resampling curves from the forecast quantiles.
+* **7E follow-up.** A cheaper second-order propagation (using Delta's sensitivity to each
+  block's volatility as well as the bucket vegas), and the same exercise for a hedging
+  decision: how much does Delta-hedging P&L depend on the volatility curve used?
 * **7F, hedging (optional, needs option data).** Whether forecast-based curves improve
   delta-hedging P&L against implied-volatility or constant-σ hedges. Option prices are
   risk-neutral; the forecasts are not. That gap must be handled explicitly (e.g. by

@@ -1,0 +1,8 @@
+{
+  "stage": "propagate",
+  "n_eval_origins": 92,
+  "quick": false,
+  "workers": 8,
+  "seconds": 449.33035870001186,
+  "git_commit": "00482687cffecc76ec50796d8431d8d1fb118ce3"
+}
