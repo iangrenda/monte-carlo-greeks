@@ -1,0 +1,40 @@
+{
+  "_purpose": "Phase 7E. Frozen protocol: carry Chronos-2's uncertainty about the future volatility curve through the CPW-first Asian-digital estimators, and test whether the resulting uncertainty band is accurate (linearisation) and calibrated (against the value under the realised volatility path). Physical-measure scenario analysis; nothing here is an option price. Committed before any curve is propagated.",
+  "frozen_on": "2026-11-11",
+  "data": "as configs/phase7_vol_forecast.json (FRED SP500, VIXCLS); same files, SHA-256 recorded",
+  "contract": {
+    "payoff": "arithmetic Asian digital 1{mean of 12 monitored prices >= K}",
+    "monitoring": "m = 12 dates, one every 5 trading days; T = 60/252 years",
+    "strikes": {"atm": "K = S0", "otm": "K = 1.05 S0"},
+    "S0": 100.0,
+    "r": 0.03,
+    "curve": "sigma_j = annualised volatility of the 5-trading-day block j = 1..12 after the origin"
+  },
+  "forecast": {
+    "model": "amazon/chronos-2 zero-shot, CPU, cross_learning = false, HF_HUB_OFFLINE=1",
+    "target_series": "log of the trailing 5-day realised volatility (annualised); forecasting the log guarantees positive volatilities (Phase 7D found negative lower quantiles on the raw scale)",
+    "context": 512,
+    "prediction_length": 60,
+    "curve_marginals": "the step-5j forecast quantiles (j = 1..12) at the model's 21 levels; quantile function linear in u between levels on the log scale, constant beyond 0.01 and 0.99",
+    "origins": "every 5th trading day from the first day with 512 + 5 prior returns (forecast origins); evaluation origins are the first forecast origin in each calendar month from 2019-01 whose 60-day realised curve is observed",
+    "garch_reference": "GARCH(1,1) on up to the last 1000 returns, refitted every 4 forecast origins; flat curve at the average 60-day variance forecast"
+  },
+  "copulas": {
+    "comonotone": "one uniform u for all 12 blocks (perfect dependence; widest band)",
+    "independent": "independent uniforms per block (narrowest band)",
+    "empirical": "Gaussian copula with correlation estimated from past forecast errors: for every earlier forecast origin whose 60-day outcome was observed before the evaluation origin, z_j = Phi^-1(F_j(realised log-vol of block j)) with F_j the forecast CDF (clipped to [0.005, 0.995]); sample correlation, shrunk 10% toward the identity; needs at least 52 past origins, else not computed"
+  },
+  "propagation": {
+    "repricing": "200 curves per (origin, copula); per curve: CPW-first price, Delta, Gamma and parallel Vega by RQMC with the 'naive' construction (exact for every curve; lets all curves share the same scrambled Sobol' points, i.e. common random numbers), N = 4096 points x 8 SciPy LMS+shift scramblings, the same seed for every curve at an origin",
+    "linear": "first-order band for the price: sd_lin = sqrt(v^T Sigma_sigma v), v = bucket vegas at the median curve, Sigma_sigma = covariance of the 12 block volatilities from 4000 curves of the same copula (no repricing)",
+    "reference_values": "median curve; flat curve with the same total variance as the median curve; GARCH flat curve; realised curve (block volatilities actually observed over the 60 days)",
+    "mc_error": "standard error of each value over the 8 scramblings, reported"
+  },
+  "seed": 20270701,
+  "hypotheses": {
+    "E1": "The first-order (bucket-vega) band is accurate: sd_lin / sd_resampled of the price is in [0.8, 1.25] for at least 80% of evaluation origins, for each copula and strike.",
+    "E2": "Dependence dominates the band width: the median over origins of sd_resampled(comonotone) / sd_resampled(independent) of the price is at least 2, for both strikes.",
+    "E3": "The empirical-copula 90% band of the price covers the value under the realised curve at a rate in [0.80, 0.97] (for both strikes). Comonotone and independent coverage are reported without a threshold.",
+    "E4": "Descriptive (no threshold): the relative difference in price and Delta between the median curve and (a) the flat curve with the same total variance, (b) the GARCH flat curve."
+  }
+}

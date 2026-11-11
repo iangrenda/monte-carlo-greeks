@@ -200,3 +200,15 @@ def test_weighted_rotation_reduces_to_the_phase6_rotation_for_a_flat_curve():
     np.testing.assert_allclose(ts.construction_matrix("pca", p), 0.3 * pca_factor(m, 0.1), atol=1e-12)
     for k in range(3):
         assert abs(U7[:, k] @ U6[:, k]) > 0.9999, k
+
+
+def test_naive_construction_gives_curve_independent_increments():
+    """Basis of the common-random-number design in Phase 7E: with the 'naive' construction the
+    standard-normal increments are the same for every volatility curve."""
+    xi = np.random.default_rng(8).standard_normal((50, 7))
+    zs = []
+    for sig in (np.full(8, 1.0), np.linspace(0.1, 0.9, 8), np.array(CURVES["event"])):
+        p = ts.TSParams(100.0, 0.02, 0.5, tuple(sig))
+        zs.append(ts.increments_from_residual(xi @ ts.construction_matrix("naive", p).T, p))
+    np.testing.assert_allclose(zs[1], zs[0], rtol=1e-10, atol=1e-12)
+    np.testing.assert_allclose(zs[2], zs[0], rtol=1e-10, atol=1e-12)
