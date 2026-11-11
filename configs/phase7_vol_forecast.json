@@ -1,0 +1,51 @@
+{
+  "_purpose": "Phase 7D. Frozen protocol for a walk-forward comparison of Chronos-2 (zero-shot) with classical volatility forecasts on the S&P 500. Committed before any forecast is computed. Real-world (physical-measure) volatility only; nothing here is an option price.",
+  "frozen_on": "2026-11-11",
+  "data": {
+    "source": "FRED (Federal Reserve Bank of St. Louis), fredgraph.csv endpoint, series SP500 (daily close, S&P Dow Jones Indices; FRED provides 10 years) and VIXCLS (CBOE VIX close)",
+    "retrieved": "2026-11-11 (first rows 2016-11-11 and 1990-01-02, last row 2026-11-09). SHA-256 of each file is recorded in the run metadata. Raw files are not committed (licence); scripts download them.",
+    "cleaning": "drop missing SP500 values (FRED marks market holidays as missing); daily log returns r_t between consecutive trading days; VIX aligned to SP500 trading days by last available value"
+  },
+  "target": {
+    "definition": "realised volatility over the next h trading days, RV_{t,h} = sqrt(252/h * sum_{s=t+1}^{t+h} r_s^2) (annualised); variance target RV^2",
+    "horizons": [5, 21],
+    "proxy_note": "daily squared returns are a noisy proxy for integrated variance (no intraday data on FRED); QLIKE and MSE on variance are robust to proxy noise for ranking (Patton 2011)"
+  },
+  "origins": "every trading day t with at least 512 + 22 prior returns, from 2019-01-02 to the last date with a fully observed target",
+  "forecasters": {
+    "hist": "trailing realised volatility over the last h days (random walk)",
+    "ewma": "RiskMetrics: sigma^2_{t+1} = 0.94 sigma^2_t + 0.06 r_t^2 (started from the first 21-day sample variance); flat over the horizon",
+    "garch": "GARCH(1,1), Gaussian quasi-likelihood, zero mean, fitted on up to the last 1000 returns (expanding until 1000 are available, so that forecasts can start in 2019), refitted every 21 origins (warm start); average h-step variance forecast in closed form",
+    "har": "log-HAR (Corsi 2009): log RV_{t,h} on log of trailing 1-, 5- and 22-day realised volatility (1-day floored at 1e-4); OLS on all past days (from day 22, the first with a 22-day window) whose target is observed (expanding), refitted every 21 origins; variance forecast exp(2 mu + 2 s^2) with s the residual sd",
+    "vix": "VIX_t / 100 (reference only, h = 21 only): a risk-neutral 30-calendar-day implied volatility, expected to be biased upward by the variance risk premium",
+    "chronos": "amazon/chronos-2 zero-shot (no fine-tuning) on the trailing h-day realised-volatility series, last 512 values up to t, prediction_length h, step-h quantiles at the model's 21 native levels (0.01, 0.05, 0.10, ..., 0.95, 0.99)",
+    "chronos-vix": "as chronos, with the VIX series as a past-only covariate (not future-known)",
+    "chronos_settings": "cross_learning = false (each origin is a separate window of the same series; cross-learning would leak information across origins); regular synthetic business-day timestamps; CPU"
+  },
+  "point_forecasts": {
+    "variance": "baselines: as defined; Chronos: E[Y^2] from its quantile function (piecewise-linear interpolation on the 21 levels, constant beyond 0.01 and 0.99), integrated on a 981-point grid",
+    "losses": "QLIKE = RV^2/F - log(RV^2/F) - 1 (primary); MSE of variance (secondary)"
+  },
+  "interval_forecasts": {
+    "levels": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+    "chronos": "its own quantiles",
+    "baselines": "point volatility forecast x exp(empirical quantile of log(realised / forecast)) over the previous 500 origins whose targets were observed before t (at least 250, else not scored)",
+    "losses": "mean pinball loss over the 9 levels (on volatility); coverage of the [0.1, 0.9] interval"
+  },
+  "tests": "Diebold-Mariano on per-origin loss differences, Newey-West variance with Bartlett kernel and lag h - 1 (overlapping targets), two-sided normal p-values",
+  "periods": {
+    "full": ["2019-01-02", "end"],
+    "2019-2021": ["2019-01-02", "2021-12-31"],
+    "2022-2024": ["2022-01-01", "2024-12-31"],
+    "2025-to-release": ["2025-01-01", "2025-10-31"],
+    "post-release": ["2025-11-01", "end"]
+  },
+  "contamination_note": "Chronos-2 was released in October 2025 and its pretraining corpus is not fully documented here. Forecasts with origins from 2025-11-01 on predict data the model cannot have seen; that period is reported separately (about one year, so its tests have low power).",
+  "hypotheses": {
+    "F1": "Chronos-2 (univariate) has lower QLIKE than the historical (random-walk) forecast at both horizons over the full period (DM p < 0.05).",
+    "F2": "Chronos-2 (univariate) is competitive with the best classical forecaster (ewma, garch, har): its full-period QLIKE is at most 5% above the best of the three at both horizons. No claim of superiority.",
+    "F3": "The VIX covariate helps: chronos-vix has lower QLIKE than chronos at h = 21 (DM p < 0.05).",
+    "F4": "Chronos-2's 80% intervals are calibrated: full-period coverage of [q0.1, q0.9] is in [0.75, 0.85] at both horizons.",
+    "F5": "No sign of contamination: in the post-release period the sign of (Chronos QLIKE - QLIKE of the classical forecaster that is best over the full period) is the same as over the full period, at both horizons."
+  }
+}

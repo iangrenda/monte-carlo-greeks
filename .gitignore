@@ -8,3 +8,6 @@ dist/
 .pytest_cache/
 .ipynb_checkpoints/
 results/experiment_data/*_raw.csv
+
+# raw third-party data (licensed; fetched by the scripts)
+data/
