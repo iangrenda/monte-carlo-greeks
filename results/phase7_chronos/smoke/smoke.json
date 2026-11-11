@@ -1,0 +1,29 @@
+{
+  "python": "3.12.10",
+  "torch": "2.15.0+cpu",
+  "load_seconds": 15.978950899996562,
+  "predict_seconds": 1.5007617999945069,
+  "series": 64,
+  "context": 512,
+  "horizon": 21,
+  "quantile_columns_used": [
+    "0.1",
+    "0.25",
+    "0.5",
+    "0.75",
+    "0.9"
+  ],
+  "mean_pinball_loss": {
+    "chronos2": 0.012867854513506697,
+    "true_conditional": 0.011572270949432903,
+    "naive_last_value": 0.01854097186435351
+  },
+  "loss_ratio_chronos_over_true": 1.1119558615361735,
+  "loss_ratio_naive_over_true": 1.6021895741442267,
+  "coverage_80pct_interval": 0.7700892857142857,
+  "abs_log_median_error_h1_h5_h21": [
+    0.020109472467224256,
+    0.04183471011035532,
+    0.11465007954294834
+  ]
+}

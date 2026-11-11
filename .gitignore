@@ -8,3 +8,8 @@ dist/
 .pytest_cache/
 .ipynb_checkpoints/
 results/experiment_data/*_raw.csv
+
+# raw third-party data (licensed; fetched by the scripts)
+data/
+results/phase7_vol_forecast/*/forecasts.csv.gz
+results/phase7_forecast_greeks/*/curve_forecasts.npz
