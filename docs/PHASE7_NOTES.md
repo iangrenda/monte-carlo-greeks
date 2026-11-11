@@ -102,7 +102,7 @@ Joint loss relative to curve-aware PCA (geometric mean over 4 contracts and 2 N)
    care about the whole path.
 2. **Greek-aware rotations are the robust choice.** They are never materially worse than
    curve-aware PCA (worst cell 1.06). Against whichever of curve-aware or naive PCA is
-   better in each cell, the trained rotation gains 1.6–8.6× and the training-free one
+   better in each cell, the trained rotation gains 1.3–8.6× and the training-free one
    1.2–6.2×. The one exception is the post-shock curve at m = 12, where the trained
    rotation is 1.06× (no gain) and the training-free one 0.85×. Their gain is smallest
    for front-loaded curves at m = 12 (falling 0.75, post-shock 0.85–1.06), which is the
