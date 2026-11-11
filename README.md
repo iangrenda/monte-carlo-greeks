@@ -26,6 +26,18 @@ estimator's variance against an exact quadrature value.
 > ([derivations §2.5](docs/mathematical_derivations.md)). "Malliavin weight"
 > in the phase-1 results below means "Malliavin = LR weight".
 
+**How the project has grown.** Phase 1 (the replication above) is documented
+at the end of this page. The sections that follow describe Phases 2–7:
+* **Phase 2:** path-dependent Asian digitals and conditional smoothing.
+* **Phase 3:** quasi-Monte Carlo path constructions under real time budgets.
+* **Phase 4:** pre-registered method selection and Greek-aware PCA.
+* **Phase 5:** budget-feasible schedules, joint Greeks, reuse and a two-asset basket.
+* **Phase 6:** a validated sampling baseline and a training-free rotation.
+* **Phase 7:** volatility term structures and Chronos-2 volatility forecasts.
+
+Every study since Phase 4 was pre-registered: its protocol was committed to
+`configs/` before any result was computed.
+
 ## Phase 2: path-dependent digital Greeks and adaptive estimator selection
 
 📋 [Audit](docs/PROJECT_AUDIT.md) · 📚 [Literature review](docs/LITERATURE_REVIEW.md) · 🧭 [Research gaps](docs/RESEARCH_GAPS.md) · 📝 [Proposal](docs/RESEARCH_PROPOSAL.md) · 🧪 [Methodology](docs/EXPERIMENTAL_METHODOLOGY.md) · 📊 **[Findings](docs/RESEARCH_FINDINGS.md)**
@@ -274,9 +286,65 @@ python scripts/phase6_shift_study.py
 python scripts/phase6_training_free_study.py
 ```
 
+## Phase 7: volatility term structures and Chronos-2 forecasts
+
+📝 **[Notes and results](docs/PHASE7_NOTES.md)**
+
+Protocols frozen in `9618248`, `b53bed9` and `0048268`, each before its run.
+Physical-measure (real-world) analysis: nothing here is an option price.
+
+* **Estimators for a volatility curve** (`src/mc_greeks/term_structure.py`).
+  A piecewise-constant σ(t) on the monitoring grid. The first-step conditioning
+  still works (δ = ln(Ā/K)/a₁), Delta and Gamma keep closed forms, and the
+  **bucket vegas** ∂V/∂σ_k come from the same paths at O(m) extra cost.
+  A flat curve reproduces the earlier estimators exactly; an exact 2-D
+  integral confirms the formulas for distinct volatilities.
+* **Efficiency under 5 curve shapes** (fixed N, 40 contracts). Reusing the
+  constant-σ path construction costs 36–130× for a one-period volatility
+  spike, but is 3–10× *better* than curve-aware PCA for a rising curve.
+  Greek-aware rotations are the robust choice (worst case 1.06× curve-aware
+  PCA).
+* **Chronos-2 vs classical volatility forecasts** (S&P 500 from FRED,
+  daily walk-forward 2019–2026, 5- and 21-day realised volatility).
+  * Zero-shot Chronos-2 beats the random walk at 5 days and ties EWMA and
+    HAR, but is **worse than GARCH(1,1)**: 9% higher QLIKE at 5 days
+    (significant) and 6% at 21 days (not significant).
+  * Adding the VIX as an input closes the gap.
+  * Its 80% intervals cover only 73–75%.
+  * In the 2020 crash its upper tail exploded (99th percentile 31,800%
+    annualised volatility).
+* **Forecast uncertainty → Greek uncertainty** (92 monthly dates).
+  * How future periods co-move, which Chronos-2 does not provide, dominates
+    the band: 3.5× wider under perfect dependence than under independence.
+  * Independence is overconfident (58–60% coverage of a nominal 90% band);
+    a copula estimated from past forecast errors covers 89%.
+  * The band is ±5% of an at-the-money value but about ±55% of its Delta.
+
+The Chronos-2 scripts run in a separate environment
+(`requirements-chronos.txt`). The FRED data are downloaded by the scripts and
+not committed (licence).
+
+```bash
+python scripts/phase7_term_structure_study.py
+```
+
+```bash
+HF_HUB_OFFLINE=1 ~/.venvs/chronos/Scripts/python scripts/phase7_vol_forecast_study.py
+```
+
+```bash
+HF_HUB_OFFLINE=1 ~/.venvs/chronos/Scripts/python scripts/phase7_forecast_greeks_study.py forecast
+```
+
+```bash
+python scripts/phase7_forecast_greeks_study.py propagate
+```
+
+Omit `HF_HUB_OFFLINE=1` on the very first run, which downloads the model.
+
 ---
 
-## Key findings
+## Phase 1: key findings (European payoffs)
 
 All results come from 200 independent replications per setting.
 
@@ -319,7 +387,7 @@ All results come from 200 independent replications per setting.
 <em>RMSE relative to the Malliavin estimator at an equal budget (log scale).</em>
 </p>
 
-## Model and estimators
+## Phase 1: model and estimators
 
 Black–Scholes `dS = rS dt + σS dW`. `S_T = S₀ exp((r−σ²/2)T + σ√T Z)` is
 sampled exactly, with no Euler discretisation. With `D = e^{−rT}` and
@@ -370,6 +438,11 @@ pip install -e .
 
 Requires Python ≥ 3.10. The direct dependencies are NumPy, SciPy, pandas and
 Matplotlib; pytest is used for the tests.
+
+The Phase 7 Chronos-2 scripts need PyTorch, so they use a second environment.
+`requirements-chronos.txt` gives the pinned versions and the install commands
+(CPU PyTorch from the PyTorch wheel index, then the file). The research
+environment above never needs PyTorch.
 
 ## Reproducing the results
 
@@ -423,7 +496,7 @@ print(est.value, "+/-", est.stderr, " exact:", analytical.greek(PAPER_PAYOFF, PA
 pytest
 ```
 
-349 tests cover:
+416 tests cover:
 
 * closed forms against high-order numerical derivatives;
 * the Malliavin and pathwise weights against quadrature, to 10⁻⁷, with no
@@ -440,6 +513,15 @@ pytest
   matching brute-force optima and never exceeding the budget in prediction;
   basket Greeks matching per-path finite differences and the exact
   Black–Scholes limit.
+* phase 6: the cached LMS+shift randomisation matching SciPy's in variance
+  and keeping the net property; the design point satisfying its constraint
+  and Lagrange condition; the training-free rotation reducing to earlier
+  rotations.
+* phase 7: volatility-curve estimators reducing exactly to the earlier code
+  for a flat curve; European closed forms and the likelihood-ratio weight
+  X/(S₀V); per-path bucket vegas equal to finite-difference derivatives;
+  every path construction reproducing the variance-clock covariance;
+  curve-independent increments (the basis of common random numbers).
 
 ## Repository structure
 
@@ -463,34 +545,60 @@ src/mc_greeks/
   joint_greeks.py      phase 5: shared-path Delta/Gamma/Vega, reusable rotations, risk-vector loss
   basket.py            phase 5: two-asset basket Asian digital, conditional smoothing, implicit Greeks
   training_free.py     phase 6: deterministic joint rotations (design point, Hessian, quadrature weights)
+  term_structure.py    phase 7: piecewise-constant sigma(t), CPW-first with bucket vegas, variance-clock constructions
   visualization.py     figures
   config.py            quick / research configurations, seeds, paper table
-scripts/               one script per experiment + full_experiment.py + figures.py
+scripts/               one script per experiment + full_experiment.py + figures.py (phase-N studies: phaseN_*.py)
+configs/               frozen (pre-registered) protocols, one per study since phase 4
 notebooks/             01 foundations, 02 paper replication, 03 comparison, 04 analysis
 tests/                 pytest suite
-results/               figures/ (PNG+PDF), tables/ (CSV), experiment_data/ (raw replications, metadata JSON)
-docs/                  derivations, experimental design, research report
+results/               figures/ (PNG+PDF), tables/ (CSV), experiment_data/ (raw replications, metadata JSON), one folder per later study
+docs/                  derivations, experimental design, research report, PHASEn_* reports
+data/                  downloaded market data (FRED); gitignored, fetched by the phase-7 scripts
+requirements-chronos.txt   pinned environment for the Chronos-2 scripts
 ```
 
 ## Limitations
 
-* Black–Scholes and one-dimensional European payoffs only. This is the
-  setting where Malliavin weights equal likelihood-ratio weights, so it
-  does not test the path-dependent cases that motivate Malliavin calculus.
-* Finite-difference bumps are tuned once (at the baseline) and then held
-  fixed as a rule. That is realistic, but it is not the best possible FD
-  in every configuration, especially at short maturities.
-* Timings are for one machine and a NumPy implementation.
+* **Models.** Geometric Brownian motion only, with constant volatility (Phases
+  1–6) or a deterministic volatility curve (Phase 7). There is no stochastic
+  volatility, jumps or local volatility.
+* **Payoffs.** European calls and digitals, the arithmetic Asian digital, and
+  a two-asset basket Asian digital. Several conclusions (nearly rank-one
+  gradient covariances, joint rotations, transfer between contracts) rely on
+  the Asian digital's single smoothing variable and may not hold for barrier
+  or worst-of payoffs.
+* **Timings.** Mostly one Windows laptop and a NumPy/SciPy implementation. One
+  study (6A) was repeated on a GitHub Actions Linux runner. Time-based
+  conclusions depend on the implementation; for example, SciPy's per-replicate
+  scrambling cost drives the Phase 5–6 crossover.
+* **Market data.** One index (S&P 500) over ten years, from FRED's daily
+  closes. Realised volatility comes from daily returns, a noisy proxy.
+  Chronos-2 was used zero-shot only (no fine-tuning).
+* **Measure.** Phase 7 is real-world (physical-measure) scenario analysis.
+  Nothing in this repository prices traded options or shows a trading edge.
+* **Pre-registration.** Protocol commits were made locally and pushed after
+  the runs. The history shows consistent ordering (config before results,
+  never edited), not externally time-stamped proof.
+* **Phase 1 detail.** Finite-difference bumps are tuned once at the baseline
+  and then held fixed, which is realistic but not optimal in every setting.
 
 ## Future extensions
 
-* Localisation for digital payoffs.
-* Antithetic variates and control variates.
-* Asian and barrier options with genuine Malliavin weights.
-* Adaptive bump selection.
-* Mixed pathwise/likelihood-ratio call Gamma.
-* Heston and multi-asset models.
-* Budget allocation across Greeks.
+Done since the list was first written: Asian options with Malliavin and
+conditional estimators, a two-asset basket, and computing-budget allocation
+across Greeks. Still open:
+
+* Analytic gradients for the basket, and a timed basket study.
+* Choosing the conditioning direction itself (preintegration via active
+  subspaces).
+* Barrier, worst-of or autocallable payoffs.
+* Stochastic volatility (e.g. Heston) and multilevel Monte Carlo.
+* Chronos-2 fine-tuned on volatility, or on log-volatility, each
+  pre-registered.
+* Whether volatility forecasts predict realised-minus-implied variance (a
+  frictionless test first, before any option-price backtest).
+* Localisation for digital payoffs, and control variates.
 
 ## References
 
