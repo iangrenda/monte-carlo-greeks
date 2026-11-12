@@ -1,0 +1,51 @@
+{
+  "_purpose": "Phase 8B. Frozen protocol: does any volatility forecast predict realised-minus-implied variance (the payoff of a 30-day S&P 500 variance swap, approximated with the VIX) out of sample? Public FRED data only. Frictionless and not directly tradable: an upper bound on what option strategies built on these forecasts could achieve. Committed before any forecast is scored.",
+  "frozen_on": "2026-11-11",
+  "data": "FRED SP500 (daily close, 16:00 ET) and VIXCLS (VIX close, 16:15 ET), downloaded by the script to data/fred/ (not committed); SHA-256 recorded",
+  "window": {
+    "definition": "for origin day t (a trading day): returns r_{t+1}..r_{t+n_t}, where t+n_t is the last trading day with date <= date_t + 30 calendar days (the VIX's 30-calendar-day horizon)",
+    "realised_total_variance": "RV_t = sum of r_s^2 over the window (close-to-close log returns)",
+    "implied_total_variance": "IV_t = (VIX_t / 100)^2 * 30 / 365 (VIX is annualised on a 365-day calendar basis and refers to 30 calendar days)",
+    "payoff": "P_t = RV_t - IV_t (total variance units; a long variance swap with unit variance notional, before costs). Reported annualised by x 365/30 where noted",
+    "n_t_note": "n_t (19-22) is fixed by the exchange calendar, so it is known at t"
+  },
+  "forecasts_of_RV_t": {
+    "hist": "average r^2 over the last 21 days x n_t",
+    "ewma": "RiskMetrics sigma^2_{t+1|t} (lambda 0.94) x n_t",
+    "garch": "GARCH(1,1) on up to the last 1000 returns, refitted every 21 origins; sum of the n_t one-to-n_t-step variance forecasts",
+    "har": "OLS of log(RV_s / n_s) on [1, log of average r^2 over the last 1, 5, 22 days at s], using only origins s whose window ended by t (expanding; refitted every 21 origins); forecast exp(mu + s_e^2/2) x n_t",
+    "chronos": "amazon/chronos-2 zero-shot on the trailing 21-day realised-volatility series (annualised, last 512 values), prediction length 21, step-21 quantiles at the 21 native levels; E[Y^2] from the quantile function (Phase 7D) / 252 x n_t",
+    "chronos-vix": "as chronos with VIX as a past-only covariate",
+    "comb": "equal-weight mean of garch, har and chronos-vix (fixed in advance)",
+    "chronos_settings": "cross_learning false, CPU, HF_HUB_OFFLINE=1"
+  },
+  "signal": "s_t = F_t - IV_t for each forecaster",
+  "payoff_forecast": "P_hat_t = a_t + b_t s_t with (a_t, b_t) from OLS on all past origins whose window ended by t (at least 250); no-signal benchmark P_bar_t = mean of the same past payoffs",
+  "periods": {
+    "development": ["first origin with 512 + 22 prior returns and 250 calibration origins", "2023-12-31"],
+    "holdout": ["2024-01-01", "last origin with a complete window"],
+    "purge": "development origins whose window extends into the holdout are dropped from development statistics",
+    "post_release_subperiod": ["2025-11-01", "end"],
+    "use": "development is descriptive; every pass/fail criterion is evaluated on the holdout only"
+  },
+  "inference": {
+    "overlap": "daily origins with ~21-trading-day windows overlap; all tests use Newey-West HAC variances with 21 lags or a moving-block bootstrap with block length 21 and 2000 resamples",
+    "multiple_testing": "Holm correction across the 7 forecasters (hist, ewma, garch, har, chronos, chronos-vix, comb) for V1 and V2"
+  },
+  "regimes": "ex-ante VIX terciles with cut-offs from the development period's VIX distribution",
+  "hypotheses": {
+    "V1": "Predictability: the out-of-sample R^2 of P_hat over the no-signal benchmark is positive on the holdout, by a one-sided Clark-West test (HAC, 21 lags) at Holm-adjusted 5% across the 7 forecasters. The study 'passes' if at least one forecaster does.",
+    "V2": "Direction: the hit rate of sign(P_hat) exceeds the no-signal benchmark's hit rate on the holdout (block-bootstrap one-sided p-value, Holm-adjusted 5%).",
+    "V3": "Chronos-2 adds information beyond GARCH: adding s_chronos-vix to a payoff regression on s_garch improves out-of-sample MSPE on the holdout (one-sided Clark-West, 5%).",
+    "V4": "Descriptive: out-of-sample R^2 by VIX tercile, holdout and development.",
+    "V5": "Sanity: the mean payoff is negative (a variance risk premium) in development and holdout (HAC t-test, one-sided 5%)."
+  },
+  "also_reported": [
+    "QLIKE of each F_t against RV_t (development, holdout, post-release)",
+    "calibration: coverage of 80% intervals for RV_t (Chronos-2: its own quantiles; others: forecast x exp(empirical quantiles of log(RV/F)) over the previous 500 completed origins)",
+    "robustness: every V1 statistic with all information lagged one trading day (removes the 15-minute VIX timing advantage)",
+    "frictionless illustration only (no hypothesis): first origin of each month, long one variance-swap unit if P_hat > 0 else short, against always-short; mean, sd, Sharpe and worst month. Not tradable: the VIX is not a traded variance-swap strike, and there are no costs."
+  ],
+  "kill_criterion": "If V1 fails (no forecaster predicts the payoff out of sample on the holdout), the public data give no support to strategies that trade forecast-minus-implied variance; Part E strategies would need an independent rationale.",
+  "seed": 20270801
+}
