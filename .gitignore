@@ -13,3 +13,4 @@ results/experiment_data/*_raw.csv
 data/
 results/phase7_vol_forecast/*/forecasts.csv.gz
 results/phase7_forecast_greeks/*/curve_forecasts.npz
+results/phase8_variance_premium/*/forecasts.csv.gz
