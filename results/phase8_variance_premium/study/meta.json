@@ -1,0 +1,17 @@
+{
+  "data_sha256": {
+    "SP500.csv": "70e8bb2a2c0001643681d4d2820247c25be0c97a4615eb7ba34f390419e46be4",
+    "VIXCLS.csv": "2724110ef2d9e5f4c7c64ca1539c50e1a503300aad5946d45b0c733255b32fa9"
+  },
+  "first_date": "2016-11-14",
+  "last_date": "2026-11-09",
+  "git_commit": "455990193f9824b740ff68cbdf3b12eb80a5c59c",
+  "config_last_commit": "455990193f9824b740ff68cbdf3b12eb80a5c59c",
+  "quick": false,
+  "n_origins": 1955,
+  "python": "3.12.10",
+  "torch": "2.15.0+cpu",
+  "chronos": "2.3.2",
+  "numpy": "2.5.4",
+  "pandas": "3.1.1"
+}

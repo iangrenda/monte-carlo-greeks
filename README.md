@@ -342,6 +342,36 @@ python scripts/phase7_forecast_greeks_study.py propagate
 
 Omit `HF_HUB_OFFLINE=1` on the very first run, which downloads the model.
 
+## Phase 8 (in progress): do volatility forecasts give an economic edge?
+
+📐 [Research design and audit](docs/PHASE8_RESEARCH_DESIGN.md) · 📊 [First results](docs/PHASE8_RESULTS.md)
+
+Research only: no broker connection, no trading, not investment advice.
+
+* **Variance-premium gate** (protocol frozen in `4559901`).
+  * Does any forecast predict the payoff of a 30-day variance swap struck at VIX², i.e.
+    realised minus implied variance, with horizons aligned to the VIX's 30 calendar days?
+  * **No.** On the 2024–2026 holdout, none of historical, EWMA, GARCH, HAR, Chronos-2,
+    Chronos-2 + VIX or their combination beats the no-signal benchmark (best out-of-sample
+    R² +0.007, Holm p = 0.88).
+  * Implied variance exceeded realised in 84–86% of months, but that premium is
+    unconditional, with crash-sized losses (March 2020), not something the forecasts time.
+* **Options engine** (synthetic test data only).
+  * Black-76 pricing, implied volatility and Greeks on the forward.
+  * A point-in-time quote schema with validation.
+  * A cash-flow ledger: bid/ask fills, commissions, cash settlement, delta hedging with a
+    proxy, and reconciliation, checked against hand-calculated trade histories.
+* **Not yet done:** a historical option backtest. It needs licensed SPX bid/ask data (check
+  Cornell's WRDS / OptionMetrics access first).
+
+```bash
+HF_HUB_OFFLINE=1 ~/.venvs/chronos/Scripts/python scripts/phase8_variance_premium_study.py forecast
+```
+
+```bash
+~/.venvs/chronos/Scripts/python scripts/phase8_variance_premium_study.py analyse
+```
+
 ---
 
 ## Phase 1: key findings (European payoffs)
@@ -496,7 +526,7 @@ print(est.value, "+/-", est.stderr, " exact:", analytical.greek(PAPER_PAYOFF, PA
 pytest
 ```
 
-416 tests cover:
+436 tests cover:
 
 * closed forms against high-order numerical derivatives;
 * the Malliavin and pathwise weights against quadrature, to 10⁻⁷, with no
@@ -522,6 +552,9 @@ pytest
   X/(S₀V); per-path bucket vegas equal to finite-difference derivatives;
   every path construction reproducing the variance-clock covariance;
   curve-independent increments (the basis of common random numbers).
+* phase 8: horizon windows of exactly 30 calendar days; payoff regressions that use only
+  payoffs known at the origin; Black-76 prices, parity, Greeks and implied volatility; quote
+  validation flags; point-in-time contract selection; hand-checked trade ledgers.
 
 ## Repository structure
 
@@ -546,6 +579,9 @@ src/mc_greeks/
   basket.py            phase 5: two-asset basket Asian digital, conditional smoothing, implicit Greeks
   training_free.py     phase 6: deterministic joint rotations (design point, Hessian, quadrature weights)
   term_structure.py    phase 7: piecewise-constant sigma(t), CPW-first with bucket vegas, variance-clock constructions
+  implied_vol.py       phase 8: Black-76 on the forward, Greeks, implied vol, forward from put-call parity
+  market_data.py       phase 8: point-in-time option-quote schema, CSV ingestion, validation, synthetic fixtures
+  options_backtest.py  phase 8: cash-flow ledger, bid/ask fills, settlement, delta hedging with a proxy
   visualization.py     figures
   config.py            quick / research configurations, seeds, paper table
 scripts/               one script per experiment + full_experiment.py + figures.py (phase-N studies: phaseN_*.py)
